@@ -1,0 +1,48 @@
+FROM ubuntu:20.04 as build
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get update -qq && apt-get -y install \
+    build-essential \
+    flex \
+    bison \
+    texinfo \
+    libgmp3-dev \
+    libmpc-dev \
+    libmpfr-dev
+
+WORKDIR /toolchain
+
+RUN mkdir ./bin \
+    && mkdir ./build_binutils \
+    && mkdir ./build_gcc
+
+ADD https://ftp.gnu.org/gnu/binutils/binutils-2.34.tar.gz ./binutils.tar.gz
+ADD https://ftp.gnu.org/gnu/gcc/gcc-9.3.0/gcc-9.3.0.tar.gz ./gcc.tar.gz
+
+RUN tar -xvzf binutils.tar.gz -C ./build_binutils && rm ./binutils.tar.gz
+RUN tar -xvzf gcc.tar.gz -C ./build_gcc && rm ./gcc.tar.gz
+
+ARG TARGET
+ENV TARGET ${TARGET}
+
+WORKDIR /toolchain/build_binutils
+RUN ./binutils-2.34/configure --target=$TARGET --prefix=/toolchain/bin --with-sysroot --disable-nls
+RUN make
+RUN make install
+RUN rm -rf /toolchain/build_binutils
+
+WORKDIR /toolchain/build_gcc
+RUN ./gcc-9.3.0/configure --target=$TARGET --prefix=/toolchain/bin --disable-nls --without-headers --enable-languages=c
+RUN make all-gcc
+RUN make all-target-libgcc
+RUN make install-gcc
+RUN make install-target-libgcc
+RUN rm -rf /toolchain/build_gcc
+
+WORKDIR /toolchain
+
+FROM ubuntu:20.04 as toolchain
+
+COPY --from=build /toolchain/bin /toolchain
+ENV PATH="/toolchain:${PATH}"
