@@ -14,19 +14,19 @@ prep:
 	mkdir -p ./bin/iso/boot/grub
 
 obj:
-	$(AS) ./src/boot.s -o ./bin/obj/boot_s.o
-	$(CC) ./src/boot.c -o ./bin/obj/boot_c.o $(CFLAGS)
+	$(AS) ./src/boot_i386/boot.s -o ./bin/obj/boot_s.o
+	$(CC) ./src/boot_i386/boot.c -o ./bin/obj/boot_c.o $(CFLAGS)
 	$(CC) ./src/terminal.c -o ./bin/obj/terminal.o $(CFLAGS)
 
 	$(CC) \
 		./bin/obj/*.o \
 		-o bin/iso/boot/kernel.bin \
-		-T ./src/linker.ld \
+		-T ./src/boot_i386/linker.ld \
 		-e start \
 		-ffreestanding -nostdlib
 
 iso:
-	cp ./src/grub.cfg ./bin/iso/boot/grub/grub.cfg
+	cp ./src/boot_i386/grub.cfg ./bin/iso/boot/grub/grub.cfg
 	grub-mkrescue \
 		-o ./bin/kernel.iso \
 		-p /boot/grub \
