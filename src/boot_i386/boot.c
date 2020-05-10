@@ -9,7 +9,7 @@
 #endif
 
 #include <stddef.h>
-#include "terminal.h"
+#include "../terminal.h"
 
 void entry()
 {
