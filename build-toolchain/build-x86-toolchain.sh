@@ -11,6 +11,6 @@ rm -rf $DIR"/toolchain"
 
 ctr=$(docker create toolchain:i686-elf)
 
-docker cp $ctr:/toolchain $DIR/toolchain
+docker cp $ctr:/toolchain/bin $DIR/toolchain
 
 docker rm $ctr

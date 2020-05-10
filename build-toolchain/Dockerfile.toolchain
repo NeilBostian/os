@@ -40,9 +40,4 @@ RUN make install-gcc
 RUN make install-target-libgcc
 RUN rm -rf /toolchain/build_gcc
 
-WORKDIR /toolchain
-
-FROM ubuntu:20.04 as toolchain
-
-COPY --from=build /toolchain/bin /toolchain
-ENV PATH="/toolchain:${PATH}"
+WORKDIR /toolchain/bin
