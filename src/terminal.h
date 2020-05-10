@@ -8,7 +8,7 @@ const size_t VGA_HEIGHT;
 
 typedef unsigned char vga_color;
 
-typedef struct terminal_char
+typedef struct
 {
     char value;
     vga_color color;
@@ -34,5 +34,6 @@ const vga_color VGA_COLOR_DEFAULT;
 
 void terminal_clear();
 void terminal_write(char *str);
+void terminal_writeint(unsigned int x);
 
 #endif

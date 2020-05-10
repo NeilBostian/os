@@ -66,3 +66,25 @@ void terminal_write(char *str)
         terminal_buffer[index] = t;
     }
 }
+
+void terminal_writeint(unsigned int x)
+{
+    char res[9];
+
+    int i = 0;
+    for (; i < 8; i++)
+    {
+        char nybble = (x & (0xF << 4 * (8 - i - 1))) >> 4 * (8 - i - 1);
+        if (nybble <= 9)
+        {
+            res[i] = '0' + nybble;
+        }
+        else
+        {
+            res[i] = 'A' + nybble - 10;
+        }
+    }
+    res[8] = '\0';
+
+    terminal_write(res);
+}
