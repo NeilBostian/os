@@ -1,12 +1,12 @@
 #ifndef TERMINAL_H
-#define TERMINAL_H
+#define TERMINAL_H 1
 
-#include <stddef.h>
+#include "types.h"
 
-const size_t VGA_WIDTH;
-const size_t VGA_HEIGHT;
+const int8 VGA_WIDTH;
+const int8 VGA_HEIGHT;
 
-typedef unsigned char vga_color;
+typedef uint8 vga_color;
 
 typedef struct
 {

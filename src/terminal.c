@@ -1,7 +1,7 @@
 #include "terminal.h"
 
-const size_t VGA_WIDTH = 80;
-const size_t VGA_HEIGHT = 24;
+const int8 VGA_WIDTH = 80;
+const int8 VGA_HEIGHT = 24;
 
 const vga_color VGA_COLOR_BLACK = 0;
 const vga_color VGA_COLOR_BLUE = 1;
@@ -23,9 +23,9 @@ const vga_color VGA_COLOR_DEFAULT = VGA_COLOR_LIGHT_GREY;
 
 terminal_char *terminal_buffer = (terminal_char *)0xB8000;
 
-size_t strlen(const char *str)
+int32 strlen(const char *str)
 {
-    size_t ret = 0;
+    int32 ret = 0;
     while (str[ret] != 0)
         ret++;
     return ret;
