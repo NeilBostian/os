@@ -1,6 +1,6 @@
-#include "../gdt.h"
-#include "../terminal.h"
-#include "../types.h"
+#include "gdt.h"
+#include "terminal.h"
+#include "types.h"
 
 typedef struct
 {
