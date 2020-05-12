@@ -208,19 +208,28 @@ void create_gdt()
 
 void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, uint32 eip)
 {
+    char isr_str[3];
+    uint8_to_str((uint8)isr, isr_str);
+    terminal_write("Received interrupt 0x");
+    terminal_write(isr_str);
+
     if (isr == 0x21)
     {
+        uint8 scan_code = inb(0x60);
+        terminal_write(", using keyboard ISR. ScanCode=0x");
+
+        char scancode_str[3];
+        uint8_to_str(scan_code, scancode_str);
+        terminal_writeline(scancode_str);
     }
     else
     {
-        terminal_writeint(isr);
+        terminal_writeline(", using default ISR");
     }
 
-    uint8 scan_code = inb(0x60);
-    terminal_writeint(scan_code);
-    PIC_sendEOI(isr - 0x20);
     if (isr >= 0x20 && isr <= 0x2F)
     {
+        PIC_sendEOI(isr - 0x20);
     }
 }
 
