@@ -2,11 +2,35 @@
 #include "terminal.h"
 #include "cpu.h"
 
+#define PIC1_CMD 0x20
+#define PIC2_CMD 0xA0
+#define PIC1_DATA 0x21
+#define PIC2_DATA 0xA1
+
+#define ICW1_ICW4 0x01      /* ICW4 (not) needed */
+#define ICW1_SINGLE 0x02    /* Single (cascade) mode */
+#define ICW1_INTERVAL4 0x04 /* Call address interval 4 (8) */
+#define ICW1_LEVEL 0x08     /* Level triggered (edge) mode */
+#define ICW1_INIT 0x10      /* Initialization - required! */
+
+#define ICW4_8086 0x01       /* 8086/88 (MCS-80/85) mode */
+#define ICW4_AUTO 0x02       /* Auto (normal) EOI */
+#define ICW4_BUF_SLAVE 0x08  /* Buffered mode/slave */
+#define ICW4_BUF_MASTER 0x0C /* Buffered mode/master */
+#define ICW4_SFNM 0x10       /* Special fully nested (not) */
+
 static gdt_entry gdt[5];
 static gdt_descriptor gdt_pointer;
 
 static idt_entry idt[64];
 static idt_descriptor idt_pointer;
+
+static void outb(uint16 port, uint8 val);
+static uint8 inb(uint16 port);
+static void PIC_sendEOI(uint8 irq);
+static void PIC_remap(uint8 offset);
+static void PIC_disable_irq(uint8 irq);
+static void PIC_enable_irq(uint8 irq);
 
 extern void reload_segments();
 extern void isr_handle();
@@ -76,71 +100,71 @@ extern void interrupt_handler_61();
 extern void interrupt_handler_62();
 extern void interrupt_handler_63();
 
-static uint32 interrupt_handlers[] = {
-    (uint32)interrupt_handler_0,
-    (uint32)interrupt_handler_1,
-    (uint32)interrupt_handler_2,
-    (uint32)interrupt_handler_3,
-    (uint32)interrupt_handler_4,
-    (uint32)interrupt_handler_5,
-    (uint32)interrupt_handler_6,
-    (uint32)interrupt_handler_7,
-    (uint32)interrupt_handler_8,
-    (uint32)interrupt_handler_9,
-    (uint32)interrupt_handler_10,
-    (uint32)interrupt_handler_11,
-    (uint32)interrupt_handler_12,
-    (uint32)interrupt_handler_13,
-    (uint32)interrupt_handler_14,
-    (uint32)interrupt_handler_15,
-    (uint32)interrupt_handler_16,
-    (uint32)interrupt_handler_17,
-    (uint32)interrupt_handler_18,
-    (uint32)interrupt_handler_19,
-    (uint32)interrupt_handler_20,
-    (uint32)interrupt_handler_21,
-    (uint32)interrupt_handler_22,
-    (uint32)interrupt_handler_23,
-    (uint32)interrupt_handler_24,
-    (uint32)interrupt_handler_25,
-    (uint32)interrupt_handler_26,
-    (uint32)interrupt_handler_27,
-    (uint32)interrupt_handler_28,
-    (uint32)interrupt_handler_29,
-    (uint32)interrupt_handler_30,
-    (uint32)interrupt_handler_31,
-    (uint32)interrupt_handler_32,
-    (uint32)interrupt_handler_33,
-    (uint32)interrupt_handler_34,
-    (uint32)interrupt_handler_35,
-    (uint32)interrupt_handler_36,
-    (uint32)interrupt_handler_37,
-    (uint32)interrupt_handler_38,
-    (uint32)interrupt_handler_39,
-    (uint32)interrupt_handler_40,
-    (uint32)interrupt_handler_41,
-    (uint32)interrupt_handler_42,
-    (uint32)interrupt_handler_43,
-    (uint32)interrupt_handler_44,
-    (uint32)interrupt_handler_45,
-    (uint32)interrupt_handler_46,
-    (uint32)interrupt_handler_47,
-    (uint32)interrupt_handler_48,
-    (uint32)interrupt_handler_49,
-    (uint32)interrupt_handler_50,
-    (uint32)interrupt_handler_51,
-    (uint32)interrupt_handler_52,
-    (uint32)interrupt_handler_53,
-    (uint32)interrupt_handler_54,
-    (uint32)interrupt_handler_55,
-    (uint32)interrupt_handler_56,
-    (uint32)interrupt_handler_57,
-    (uint32)interrupt_handler_58,
-    (uint32)interrupt_handler_59,
-    (uint32)interrupt_handler_60,
-    (uint32)interrupt_handler_61,
-    (uint32)interrupt_handler_62,
-    (uint32)interrupt_handler_63};
+static void *interrupt_handlers[] = {
+    (void *)interrupt_handler_0,
+    (void *)interrupt_handler_1,
+    (void *)interrupt_handler_2,
+    (void *)interrupt_handler_3,
+    (void *)interrupt_handler_4,
+    (void *)interrupt_handler_5,
+    (void *)interrupt_handler_6,
+    (void *)interrupt_handler_7,
+    (void *)interrupt_handler_8,
+    (void *)interrupt_handler_9,
+    (void *)interrupt_handler_10,
+    (void *)interrupt_handler_11,
+    (void *)interrupt_handler_12,
+    (void *)interrupt_handler_13,
+    (void *)interrupt_handler_14,
+    (void *)interrupt_handler_15,
+    (void *)interrupt_handler_16,
+    (void *)interrupt_handler_17,
+    (void *)interrupt_handler_18,
+    (void *)interrupt_handler_19,
+    (void *)interrupt_handler_20,
+    (void *)interrupt_handler_21,
+    (void *)interrupt_handler_22,
+    (void *)interrupt_handler_23,
+    (void *)interrupt_handler_24,
+    (void *)interrupt_handler_25,
+    (void *)interrupt_handler_26,
+    (void *)interrupt_handler_27,
+    (void *)interrupt_handler_28,
+    (void *)interrupt_handler_29,
+    (void *)interrupt_handler_30,
+    (void *)interrupt_handler_31,
+    (void *)interrupt_handler_32,
+    (void *)interrupt_handler_33,
+    (void *)interrupt_handler_34,
+    (void *)interrupt_handler_35,
+    (void *)interrupt_handler_36,
+    (void *)interrupt_handler_37,
+    (void *)interrupt_handler_38,
+    (void *)interrupt_handler_39,
+    (void *)interrupt_handler_40,
+    (void *)interrupt_handler_41,
+    (void *)interrupt_handler_42,
+    (void *)interrupt_handler_43,
+    (void *)interrupt_handler_44,
+    (void *)interrupt_handler_45,
+    (void *)interrupt_handler_46,
+    (void *)interrupt_handler_47,
+    (void *)interrupt_handler_48,
+    (void *)interrupt_handler_49,
+    (void *)interrupt_handler_50,
+    (void *)interrupt_handler_51,
+    (void *)interrupt_handler_52,
+    (void *)interrupt_handler_53,
+    (void *)interrupt_handler_54,
+    (void *)interrupt_handler_55,
+    (void *)interrupt_handler_56,
+    (void *)interrupt_handler_57,
+    (void *)interrupt_handler_58,
+    (void *)interrupt_handler_59,
+    (void *)interrupt_handler_60,
+    (void *)interrupt_handler_61,
+    (void *)interrupt_handler_62,
+    (void *)interrupt_handler_63};
 
 void create_gdt()
 {
@@ -184,11 +208,32 @@ void create_gdt()
 
 void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, uint32 eip)
 {
-    terminal_writeint(isr);
+    if (isr == 0x21)
+    {
+    }
+    else
+    {
+        terminal_writeint(isr);
+    }
+
+    uint8 scan_code = inb(0x60);
+    terminal_writeint(scan_code);
+    PIC_sendEOI(isr - 0x20);
+    if (isr >= 0x20 && isr <= 0x2F)
+    {
+    }
 }
 
 void create_idt()
 {
+    // Interrupts 0-31,  reserved for CPU
+    // Interrupts 32-47, reserved for PIC
+    // Interrupts 48-63, unused by kernel
+    PIC_remap(0x20);
+
+    // Only IRQ 1 (ISR 0x21) / keyboard enabled for now
+    PIC_enable_irq(1);
+
     idt_pointer.limit = sizeof(idt) - 1;
     idt_pointer.address = idt;
 
@@ -198,7 +243,7 @@ void create_idt()
 
     for (int i = 0; i < 64; i++)
     {
-        uint32 interrupt_handler_address = interrupt_handlers[i];
+        uint32 interrupt_handler_address = (uint32)interrupt_handlers[i];
         uint16 offset_0_15 = interrupt_handler_address & 0x0000FFFF;
         uint16 offset_16_31 = interrupt_handler_address >> 16;
 
@@ -211,4 +256,90 @@ void create_idt()
 
     asm("lidt %0" ::"m"(idt_pointer)
         : "memory");
+
+    asm("sti");
+}
+
+void PIC_sendEOI(uint8 irq)
+{
+    if (irq >= 8)
+        outb(PIC2_CMD, 0x20);
+
+    outb(PIC1_CMD, 0x20);
+}
+
+void PIC_remap(uint8 offset)
+{
+    outb(PIC1_CMD, ICW1_INIT | ICW1_ICW4); // starts the initialization sequence (in cascade mode)
+    outb(PIC2_CMD, ICW1_INIT | ICW1_ICW4);
+    outb(PIC1_DATA, offset);     // ICW2: Master PIC vector offset
+    outb(PIC2_DATA, offset + 8); // ICW2: Slave PIC vector offset
+    outb(PIC1_DATA, 4);          // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+    outb(PIC2_DATA, 2);          // ICW3: tell Slave PIC its cascade identity (0000 0010)
+
+    outb(PIC1_DATA, ICW4_8086);
+    outb(PIC2_DATA, ICW4_8086);
+
+    // Mask -- start out with all IRQs disabled.
+    // https://github.com/SerenityOS/serenity/blob/master/Kernel/Interrupts/PIC.cpp
+    outb(PIC1_DATA, 0xff);
+    outb(PIC1_DATA, 0xff);
+
+    // ...except IRQ2, since that's needed for the master to let through slave interrupts.
+    PIC_enable_irq(2);
+}
+
+void PIC_disable_irq(uint8 irq)
+{
+    uint16 port;
+    uint8 value;
+
+    if (irq < 8)
+    {
+        port = PIC1_DATA;
+    }
+    else
+    {
+        port = PIC2_DATA;
+        irq -= 8;
+    }
+
+    value = inb(port) | (1 << irq);
+    outb(port, value);
+}
+
+void PIC_enable_irq(uint8 irq)
+{
+    uint16 port;
+    uint8 value;
+
+    if (irq < 8)
+    {
+        port = PIC1_DATA;
+    }
+    else
+    {
+        port = PIC2_DATA;
+        irq -= 8;
+    }
+
+    value = inb(port) & ~(1 << irq);
+    outb(port, value);
+}
+
+// See https://wiki.osdev.org/Inline_Assembly/Examples#I.2FO_access
+inline void outb(uint16 port, uint8 val)
+{
+    asm volatile("outb %0, %1" ::"a"(val), "Nd"(port));
+}
+
+inline uint8 inb(uint16 port)
+{
+    uint8 ret;
+
+    asm volatile("inb %1, %0"
+                 : "=a"(ret)
+                 : "Nd"(port));
+
+    return ret;
 }

@@ -31,13 +31,6 @@ void entry()
     create_gdt();
     create_idt();
 
-    asm("int $0x01");
-    asm("int $0x02");
-    asm("int $0x03");
-    asm("int $0x04");
-    asm("int $0x05");
-    asm("int $0x06");
-
     while (1)
         ;
 }

@@ -22,6 +22,7 @@ const vga_color VGA_COLOR_WHITE = 15;
 const vga_color VGA_COLOR_DEFAULT = VGA_COLOR_LIGHT_GREY;
 
 terminal_char *terminal_buffer = (terminal_char *)0xB8000;
+uint8 line = 0;
 
 int32 strlen(const char *str)
 {
@@ -57,13 +58,21 @@ void terminal_write(char *str)
     int index = 0,
         len = strlen(str);
 
-    for (index; index < len; index++)
+    int lineOffset = line * VGA_WIDTH;
+    for (index; index < len && index < VGA_WIDTH; index++)
     {
         terminal_char t;
         t.value = str[index];
         t.color = VGA_COLOR_DEFAULT;
 
-        terminal_buffer[index] = t;
+        terminal_buffer[index + lineOffset] = t;
+    }
+
+    line++;
+
+    if (line >= VGA_HEIGHT)
+    {
+        line = 0;
     }
 }
 
