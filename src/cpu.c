@@ -241,7 +241,7 @@ void create_idt()
     PIC_remap(0x20);
 
     // Only IRQ 1 (ISR 0x21) / keyboard enabled for now
-    PIC_enable_irq(1);
+    // PIC_enable_irq(1);
 
     idt_pointer.limit = sizeof(idt) - 1;
     idt_pointer.address = idt;

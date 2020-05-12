@@ -31,6 +31,20 @@ void entry()
     create_gdt();
     create_idt();
 
+    char uint32_str[9];
+
+    terminal_writeline(" -----------------");
+    terminal_writeline(" | Kernel loaded |");
+    terminal_writeline(" -----------------");
+
+    terminal_write(" boot flags:  ");
+    terminal_write_uint32(boot_info->flags);
+    terminal_write("\n");
+
+    terminal_write(" boot_device: ");
+    terminal_write_uint32(boot_info->boot_device);
+    terminal_write("\n");
+
     while (1)
         ;
 }

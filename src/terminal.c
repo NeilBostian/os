@@ -67,6 +67,20 @@ void terminal_write(char *str)
     }
 }
 
+void terminal_write_uint8(uint8 x)
+{
+    char str[3];
+    uint8_to_str(x, str);
+    terminal_write(str);
+}
+
+void terminal_write_uint32(uint32 x)
+{
+    char str[9];
+    uint32_to_str(x, str);
+    terminal_write(str);
+}
+
 void terminal_writeline(char *str)
 {
     int index = 0,
