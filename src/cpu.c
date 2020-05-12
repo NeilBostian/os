@@ -3,6 +3,9 @@
 #include "cpu.h"
 #include "serial.h"
 
+#define PIC_ISR_OFFSET 0x20
+#define PIC_ISR_KEYBOARD PIC_ISR_OFFSET + 1
+
 #define PIC1_CMD 0x20
 #define PIC2_CMD 0xA0
 #define PIC1_DATA 0x21
@@ -207,28 +210,18 @@ void create_gdt()
 
 void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, uint32 eip)
 {
-    char isr_str[3];
-    uint8_to_str((uint8)isr, isr_str);
-    terminal_write("Received interrupt 0x");
-    terminal_write(isr_str);
-
-    if (isr == 0x21)
+    if (isr == PIC_ISR_KEYBOARD)
     {
         uint8 scan_code = inb(0x60);
-        terminal_write(", using keyboard ISR. ScanCode=0x");
-
-        char scancode_str[3];
-        uint8_to_str(scan_code, scancode_str);
-        terminal_writeline(scancode_str);
+        PIC_sendEOI(isr - PIC_ISR_OFFSET);
     }
     else
     {
-        terminal_writeline(", using default ISR");
-    }
-
-    if (isr >= 0x20 && isr <= 0x2F)
-    {
-        PIC_sendEOI(isr - 0x20);
+        char isr_str[3];
+        uint8_to_str((uint8)isr, isr_str);
+        terminal_write("Received interrupt 0x");
+        terminal_write(isr_str);
+        terminal_writeline(", no handler configured for this ISR.");
     }
 }
 
@@ -237,17 +230,17 @@ void create_idt()
     // Interrupts 0-31,  reserved for CPU
     // Interrupts 32-47, reserved for PIC
     // Interrupts 48-63, unused by kernel
-    PIC_remap(0x20);
+    PIC_remap(PIC_ISR_OFFSET);
 
     // Only IRQ 1 (ISR 0x21) / keyboard enabled for now
-    // PIC_enable_irq(1);
+    PIC_enable_irq(1);
 
     idt_pointer.limit = sizeof(idt) - 1;
     idt_pointer.address = idt;
 
-    uint16 selector = 0x08;
+    uint16 selector = 0x08; // kernel code selector
     uint8 zero = 0x00;
-    uint8 type_attr = 0b10001110;
+    uint8 type_attr = 0b10001110; // interrupt only available to kernel (not user code)
 
     for (int i = 0; i < 64; i++)
     {
