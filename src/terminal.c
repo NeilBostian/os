@@ -74,6 +74,13 @@ void terminal_write_uint8(uint8 x)
     terminal_write(str);
 }
 
+void terminal_write_uint8bin(uint8 x)
+{
+    char str[9];
+    uint8_to_strbin(x, str);
+    terminal_write(str);
+}
+
 void terminal_write_uint32(uint32 x)
 {
     char str[9];
@@ -155,6 +162,24 @@ void uint8_to_str(uint8 x, char *res)
     res[0] = as32[6];
     res[1] = as32[7];
     res[2] = '\0';
+}
+
+void uint8_to_strbin(uint8 x, char *res)
+{
+    int i = 0;
+    for (; i < 8; i++)
+    {
+        uint8 mask = 1 << i;
+        if (x & mask)
+        {
+            res[7 - i] = '1';
+        }
+        else
+        {
+            res[7 - i] = '0';
+        }
+    }
+    res[8] = '\0';
 }
 
 void uint32_to_str(uint32 x, char *res)

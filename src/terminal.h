@@ -35,9 +35,11 @@ const vga_color VGA_COLOR_DEFAULT;
 void terminal_clear();
 void terminal_write(char *str);
 void terminal_write_uint8(uint8 x);
+void terminal_write_uint8bin(uint8 x);
 void terminal_write_uint32(uint32 x);
 void terminal_writeline(char *str);
-void uint8_to_str(uint8 x, char* res);
+void uint8_to_str(uint8 x, char *res);
+void uint8_to_strbin(uint8 x, char *res);
 void uint32_to_str(uint32 x, char *res);
 
 #endif

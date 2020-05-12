@@ -3,6 +3,15 @@
 #include "types.h"
 #include "drivers/ATA_PIO_LBA28.h"
 
+// Flags for boot_info.flags0
+#define BOOT_MEM 1 << 0
+#define BOOT_DEVICE 1 << 1
+#define BOOT_CMDLINE 1 << 2
+#define BOOT_MMAP 1 << 6
+
+// Flags for boot_info.flags1 (beginning offset 8 in 32-bit flags)
+#define BOOT_BOOTLOADER_NAME 1 << 1 // Flag 9 in 32-bit flags
+
 typedef struct
 {
     uint32 size;
@@ -82,18 +91,16 @@ void entry()
     terminal_write("\n\n");
 
     terminal_writeline("boot_info");
-    terminal_write(" boot flags:  ");
-    terminal_write_uint8(boot_info->flags3);
-    terminal_write_uint8(boot_info->flags2);
-    terminal_write_uint8(boot_info->flags1);
-    terminal_write_uint8(boot_info->flags0);
+    terminal_write(" flags ");
+    terminal_write_uint8bin(boot_info->flags3);
+    terminal_write_uint8bin(boot_info->flags2);
+    terminal_write_uint8bin(boot_info->flags1);
+    terminal_write_uint8bin(boot_info->flags0);
     terminal_write("\n");
+    terminal_writeline("       |      |       |       |       |");
+    terminal_writeline("       31     24      16      8       0");
 
-    terminal_write(" boot_device: ");
-    terminal_write_uint32(boot_info->boot_device);
-    terminal_write("\n");
-
-    if (boot_info->flags0 & 0b00000001)
+    if (boot_info->flags0 & BOOT_MEM)
     {
         terminal_write(" mem_lower:   ");
         terminal_write_uint32(1024 * boot_info->mem_lower);
@@ -104,7 +111,28 @@ void entry()
         terminal_write("\n");
     }
 
-    if (boot_info->flags0 & 0b01000000)
+    if (boot_info->flags0 & BOOT_DEVICE)
+    {
+        terminal_write(" boot_device: ");
+        terminal_write_uint32(boot_info->boot_device);
+        terminal_write("\n");
+    }
+
+    if (boot_info->flags0 & BOOT_CMDLINE)
+    {
+        terminal_write(" cmd: \"");
+        terminal_write(boot_info->cmdline);
+        terminal_write("\"\n");
+    }
+
+    if (boot_info->flags1 & BOOT_BOOTLOADER_NAME)
+    {
+        terminal_write(" bootloader: \"");
+        terminal_write(boot_info->boot_loader_name);
+        terminal_write("\"\n");
+    }
+
+    if (boot_info->flags0 & BOOT_MMAP)
     {
         terminal_writeline("");
         terminal_writeline("Detected mmap struct");
