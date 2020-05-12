@@ -67,7 +67,7 @@ void terminal_write(char *str)
     }
 }
 
-void terminal_writeint(unsigned int x)
+void terminal_writeint(uint32 x)
 {
     char res[9];
 

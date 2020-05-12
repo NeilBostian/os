@@ -1,5 +1,5 @@
 #ifndef TERMINAL_H
-#define TERMINAL_H 1
+#define TERMINAL_H
 
 #include "types.h"
 
@@ -12,7 +12,7 @@ typedef struct
 {
     char value;
     vga_color color;
-} terminal_char;
+} __attribute__((packed)) terminal_char;
 
 const vga_color VGA_COLOR_BLACK;
 const vga_color VGA_COLOR_BLUE;
@@ -34,6 +34,6 @@ const vga_color VGA_COLOR_DEFAULT;
 
 void terminal_clear();
 void terminal_write(char *str);
-void terminal_writeint(unsigned int x);
+void terminal_writeint(uint32 x);
 
 #endif
