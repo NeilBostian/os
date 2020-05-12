@@ -1,31 +1,29 @@
 #include "terminal.h"
+#include "cpu.h"
 
-const int8 VGA_WIDTH = 80;
-const int8 VGA_HEIGHT = 25;
+// Number of characters in a row
+#define VGA_WIDTH 80
 
-const vga_color VGA_COLOR_BLACK = 0;
-const vga_color VGA_COLOR_BLUE = 1;
-const vga_color VGA_COLOR_GREEN = 2;
-const vga_color VGA_COLOR_CYAN = 3;
-const vga_color VGA_COLOR_RED = 4;
-const vga_color VGA_COLOR_MAGENTA = 5;
-const vga_color VGA_COLOR_BROWN = 6;
-const vga_color VGA_COLOR_LIGHT_GREY = 7;
-const vga_color VGA_COLOR_DARK_GREY = 8;
-const vga_color VGA_COLOR_LIGHT_BLUE = 9;
-const vga_color VGA_COLOR_LIGHT_GREEN = 10;
-const vga_color VGA_COLOR_LIGHT_CYAN = 11;
-const vga_color VGA_COLOR_LIGHT_RED = 12;
-const vga_color VGA_COLOR_LIGHT_MAGENTA = 13;
-const vga_color VGA_COLOR_LIGHT_BROWN = 14;
-const vga_color VGA_COLOR_WHITE = 15;
-const vga_color VGA_COLOR_DEFAULT = VGA_COLOR_LIGHT_GREY;
+// VGA_HEIGHT is actually 25, but this terminal uses the bottom row for static information
+#define VGA_HEIGHT 24
+
+// Maximum amount of characters in the history array
+#define HIST_SIZE 1024 * 1024 * 4
+
+// Upper bound of cursor_row based on HIST_SIZE
+#define MAX_ROW HIST_SIZE / VGA_WIDTH
+
+// Upper bound of current_row_offset based on HIST_SIZE / VGA_HEIGHT
+#define MAX_ROW_OFFSET MAX_ROW - VGA_HEIGHT
 
 terminal_char *terminal_buffer = (terminal_char *)0xB8000;
-static uint8 cursor_row = 0;
-static uint8 cursor_col = 0;
+static uint32 cursor_row = 0;
+static uint32 cursor_col = 0;
+static terminal_char terminal_history[HIST_SIZE];
+static int current_row_offset = 0;
 
 static void terminal_putchar(char c);
+static void map_history_to_buffer(uint32 row_offset);
 
 int32 strlen(const char *str)
 {
@@ -37,22 +35,37 @@ int32 strlen(const char *str)
 
 void terminal_clear()
 {
-    int row = 0,
-        col = 0;
+    cursor_row = 0;
+    cursor_col = 0;
 
-    terminal_char *buffer = terminal_buffer;
-
-    for (row; row < VGA_HEIGHT; row++)
+    for (uint32 row = 0; row < VGA_HEIGHT; row++)
     {
-        for (col; col < VGA_WIDTH; col++)
+        for (uint32 col = 0; col < VGA_WIDTH; col++)
         {
-            terminal_char t;
-            t.value = ' ';
-            t.color = VGA_COLOR_DEFAULT;
-
-            *buffer = t;
-            buffer++;
+            uint32 offset = col + row * VGA_HEIGHT;
+            terminal_buffer[offset].value = ' ';
+            terminal_buffer[offset].color = VGA_COLOR_DEFAULT;
         }
+    }
+
+    for (uint32 hist_ind = 0; hist_ind < HIST_SIZE; hist_ind++)
+    {
+        terminal_history[hist_ind].value = ' ';
+        terminal_history[hist_ind].color = VGA_COLOR_DEFAULT;
+    }
+
+    uint32 lastrow_offset = 24 * VGA_WIDTH;
+    for (uint32 ind = 0; ind < VGA_WIDTH; ind++)
+    {
+        terminal_buffer[lastrow_offset + ind].color = VGA_FG_BLACK | VGA_BG_WHITE;
+    }
+
+    char *msg = " Scroll (pg up/down)";
+    uint32 len = strlen(msg);
+    for (uint32 ind = 0; ind < len; ind++)
+    {
+        uint32 o = lastrow_offset + ind;
+        terminal_buffer[o].value = msg[ind];
     }
 }
 
@@ -119,7 +132,7 @@ void terminal_putchar(char c)
 
     default:
         loc = cursor_col + (cursor_row * VGA_WIDTH);
-        terminal_buffer[loc].value = c;
+        terminal_history[loc].value = c;
         cursor_col++;
     }
 
@@ -130,28 +143,71 @@ void terminal_putchar(char c)
         cursor_row++;
     }
 
-    // Handle validating terminal_row, and scrolling the screen upwards if necessary.
-    if (cursor_row >= VGA_HEIGHT)
+    if (cursor_row - current_row_offset >= VGA_HEIGHT)
     {
-        int col, row;
-        for (col = 0; col < VGA_WIDTH; col++)
-        {
-            for (row = 0; row < VGA_HEIGHT - 1; row++)
-            {
-                int curInd = (row * VGA_WIDTH) + col;
-                int targetInd = ((row + 1) * VGA_WIDTH) + col;
-                terminal_buffer[curInd] = terminal_buffer[targetInd];
-            }
-        }
+        current_row_offset = cursor_row - VGA_HEIGHT;
 
-        // Also clear out the bottom row
-        for (col = 0; col < VGA_WIDTH; col++)
+        if (current_row_offset >= MAX_ROW_OFFSET)
         {
-            loc = col + ((VGA_HEIGHT - 1) * VGA_WIDTH);
-            terminal_buffer[loc].value = ' ';
+            current_row_offset = MAX_ROW_OFFSET - 1;
         }
+    }
 
-        cursor_row = VGA_HEIGHT - 1;
+    if (cursor_row >= MAX_ROW)
+    {
+        panic();
+    }
+
+    map_history_to_buffer(current_row_offset);
+}
+
+void terminal_pageup()
+{
+    current_row_offset -= 10;
+
+    if (current_row_offset < 0)
+    {
+        current_row_offset = 0;
+    }
+
+    map_history_to_buffer(current_row_offset);
+}
+
+void terminal_pagedown()
+{
+    uint32 max_offset = cursor_row - VGA_HEIGHT;
+
+    if (max_offset >= MAX_ROW_OFFSET)
+    {
+        max_offset = MAX_ROW_OFFSET - 1;
+    }
+
+    current_row_offset += 10;
+
+    if (current_row_offset < 0)
+    {
+        current_row_offset = 0;
+    }
+    else if (current_row_offset >= max_offset)
+    {
+        current_row_offset = max_offset;
+    }
+
+    map_history_to_buffer(current_row_offset);
+}
+
+void map_history_to_buffer(uint32 row_offset)
+{
+    uint32 hist_offset = row_offset * VGA_WIDTH;
+
+    for (uint32 row = 0; row < VGA_HEIGHT; row++)
+    {
+        for (uint32 col = 0; col < VGA_WIDTH; col++)
+        {
+            uint32 offset = col + row * VGA_WIDTH;
+            terminal_buffer[offset].value = terminal_history[hist_offset + offset].value;
+            terminal_buffer[offset].color = terminal_history[hist_offset + offset].color;
+        }
     }
 }
 

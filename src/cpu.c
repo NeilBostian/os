@@ -4,7 +4,8 @@
 #include "serial.h"
 
 #define PIC_ISR_OFFSET 0x20
-#define PIC_ISR_KEYBOARD PIC_ISR_OFFSET + 1
+#define ISR_KEYBOARD PIC_ISR_OFFSET + 1
+#define ISR_KERNEL_PANIC 0x30
 
 #define PIC1_CMD 0x20
 #define PIC2_CMD 0xA0
@@ -33,6 +34,7 @@ static void PIC_sendEOI(uint8 irq);
 static void PIC_remap(uint8 offset);
 static void PIC_disable_irq(uint8 irq);
 static void PIC_enable_irq(uint8 irq);
+static void panic_internal();
 
 extern void reload_segments();
 extern void isr_handle();
@@ -210,17 +212,33 @@ void create_gdt()
 
 void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, uint32 eip)
 {
-    if (isr == PIC_ISR_KEYBOARD)
+    if (isr == ISR_KEYBOARD)
     {
         uint8 scan_code = inb(0x60);
+
+        // terminal_write("kbd_scan=0x");
+        // terminal_write_uint8(scan_code);
+        // terminal_write("\n");
+
+        if (scan_code == 0x49)
+        {
+            terminal_pageup();
+        }
+        else if (scan_code == 0x51)
+        {
+            terminal_pagedown();
+        }
+
         PIC_sendEOI(isr - PIC_ISR_OFFSET);
+    }
+    else if (isr == ISR_KERNEL_PANIC)
+    {
+        panic_internal();
     }
     else
     {
-        char isr_str[3];
-        uint8_to_str((uint8)isr, isr_str);
         terminal_write("Received interrupt 0x");
-        terminal_write(isr_str);
+        terminal_write_uint8((uint8)isr);
         terminal_writeline(", no handler configured for this ISR.");
     }
 }
@@ -229,7 +247,8 @@ void create_idt()
 {
     // Interrupts 0-31,  reserved for CPU
     // Interrupts 32-47, reserved for PIC
-    // Interrupts 48-63, unused by kernel
+    // Interrupt 48 - Kernel Panic
+    // Interrupts 49-63, unused by kernel
     PIC_remap(PIC_ISR_OFFSET);
 
     // Only IRQ 1 (ISR 0x21) / keyboard enabled for now
@@ -326,4 +345,16 @@ void PIC_enable_irq(uint8 irq)
 
     value = inb(port) & ~(1 << irq);
     outb(port, value);
+}
+
+void panic()
+{
+    asm("int %0" ::"i"(ISR_KERNEL_PANIC));
+}
+
+void panic_internal()
+{
+    // Should really make this do something
+    while (1)
+        ;
 }

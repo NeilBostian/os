@@ -48,5 +48,6 @@ typedef struct
 
 void create_gdt();
 void create_idt();
+void panic();
 
 #endif

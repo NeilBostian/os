@@ -8,6 +8,7 @@
 #define BOOT_DEVICE 1 << 1
 #define BOOT_CMDLINE 1 << 2
 #define BOOT_MMAP 1 << 6
+#define BOOT_DRIVES 1 << 7
 
 // Flags for boot_info.flags1 (beginning offset 8 in 32-bit flags)
 #define BOOT_BOOTLOADER_NAME 1 << 1 // Flag 9 in 32-bit flags
@@ -188,7 +189,7 @@ void entry()
         }
     }
 
-    if (boot_info->flags0 & 0b10000000)
+    if (boot_info->flags0 & BOOT_DRIVES)
     {
         terminal_writeline("Dectected drives");
         terminal_write(" drives_addr: ");
