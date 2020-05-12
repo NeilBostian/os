@@ -1,6 +1,7 @@
 #include "cpu.h"
 #include "terminal.h"
 #include "types.h"
+#include "drivers/ATA_PIO_LBA28.h"
 
 typedef struct
 {
@@ -43,6 +44,10 @@ void entry()
 
     terminal_write(" boot_device: ");
     terminal_write_uint32(boot_info->boot_device);
+    terminal_write("\n");
+
+    terminal_write("Primary ATA status: ");
+    terminal_write_uint8(get_status());
     terminal_write("\n");
 
     while (1)

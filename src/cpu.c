@@ -1,6 +1,7 @@
 #include "types.h"
 #include "terminal.h"
 #include "cpu.h"
+#include "serial.h"
 
 #define PIC1_CMD 0x20
 #define PIC2_CMD 0xA0
@@ -25,8 +26,6 @@ static gdt_descriptor gdt_pointer;
 static idt_entry idt[64];
 static idt_descriptor idt_pointer;
 
-static void outb(uint16 port, uint8 val);
-static uint8 inb(uint16 port);
 static void PIC_sendEOI(uint8 irq);
 static void PIC_remap(uint8 offset);
 static void PIC_disable_irq(uint8 irq);
@@ -334,21 +333,4 @@ void PIC_enable_irq(uint8 irq)
 
     value = inb(port) & ~(1 << irq);
     outb(port, value);
-}
-
-// See https://wiki.osdev.org/Inline_Assembly/Examples#I.2FO_access
-inline void outb(uint16 port, uint8 val)
-{
-    asm volatile("outb %0, %1" ::"a"(val), "Nd"(port));
-}
-
-inline uint8 inb(uint16 port)
-{
-    uint8 ret;
-
-    asm volatile("inb %1, %0"
-                 : "=a"(ret)
-                 : "Nd"(port));
-
-    return ret;
 }
