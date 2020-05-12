@@ -26,8 +26,9 @@ all: prep $(CC_OBJ_FILES) $(AS_OBJ_FILES) link
 		-p /boot/grub \
 		./bin/iso
 
-	# Launch qemu emulator with pointed at our iso
-	qemu-system-i386 -cdrom ./bin/kernel.iso
+	cp ./bin/kernel.iso ./bin/kernel2.iso
+	# Launch qemu emulator with pointed at our iso, 1GB RAM
+	qemu-system-i386 -m 1024 -cdrom ./bin/kernel.iso -drive format=raw,media=cdrom,readonly,file=./bin/kernel2.iso
 
 prep:
 	@rm -rf bin
