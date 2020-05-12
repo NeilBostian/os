@@ -78,6 +78,8 @@ void terminal_write(char *str)
     {
         terminal_putchar(str[index]);
     }
+
+    map_history_to_buffer(current_row_offset);
 }
 
 void terminal_write_uint8(uint8 x)
@@ -112,6 +114,8 @@ void terminal_writeline(char *str)
     }
 
     terminal_putchar('\n');
+
+    map_history_to_buffer(current_row_offset);
 }
 
 void terminal_putchar(char c)
@@ -157,8 +161,6 @@ void terminal_putchar(char c)
     {
         panic();
     }
-
-    map_history_to_buffer(current_row_offset);
 }
 
 void terminal_pageup()
