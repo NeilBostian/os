@@ -228,8 +228,6 @@ void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, uint32 eip)
         {
             terminal_pagedown();
         }
-
-        PIC_sendEOI(isr - PIC_ISR_OFFSET);
     }
     else if (isr == ISR_KERNEL_PANIC)
     {
@@ -240,6 +238,11 @@ void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, uint32 eip)
         terminal_write("Received interrupt 0x");
         terminal_write_uint8((uint8)isr);
         terminal_writeline(", no handler configured for this ISR.");
+    }
+
+    if (isr >= PIC_ISR_OFFSET && isr < PIC_ISR_OFFSET + 16)
+    {
+        PIC_sendEOI(isr - PIC_ISR_OFFSET);
     }
 }
 
@@ -253,6 +256,8 @@ void create_idt()
 
     // Only IRQ 1 (ISR 0x21) / keyboard enabled for now
     PIC_enable_irq(1);
+    PIC_enable_irq(14);
+    PIC_enable_irq(15);
 
     idt_pointer.limit = sizeof(idt) - 1;
     idt_pointer.address = idt;

@@ -1,7 +1,7 @@
 #include "cpu.h"
 #include "terminal.h"
 #include "types.h"
-#include "drivers/ATA_PIO_LBA28.h"
+#include "drivers/ATA.h"
 
 // Flags for boot_info.flags0
 #define BOOT_MEM 1 << 0
@@ -69,14 +69,29 @@ extern void *start;
 extern void *stack_bottom;
 extern void *stack_top;
 
+static void print_boot_info();
+
 void entry()
 {
     terminal_clear();
     create_gdt();
     create_idt();
 
-    char uint32_str[9];
+    print_boot_info();
 
+    terminal_writeline("");
+    terminal_writeline("Testing ATA");
+    test_atapio();
+    terminal_writeline("Test complete.");
+
+    while (1)
+    {
+        asm("hlt");
+    }
+}
+
+void print_boot_info()
+{
     terminal_writeline("symbols");
     terminal_write(" start:       ");
     terminal_write_uint32((uint32)start);
@@ -199,10 +214,5 @@ void entry()
         terminal_write(" drives_len:  ");
         terminal_write_uint32(boot_info->drives_length);
         terminal_write("\n");
-    }
-
-    while (1)
-    {
-        asm("hlt");
     }
 }
