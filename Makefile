@@ -17,18 +17,10 @@ CFLAGS := -ffreestanding -nostdlib -Werror -c -I$(SRC)
 ASFLAGS := -c
 
 all: prep $(CC_OBJ_FILES) $(AS_OBJ_FILES) link
-	# Move our grub config file to the dir for building our iso
-	cp ./src/grub.cfg ./bin/iso/boot/grub/grub.cfg
-
-	# Create iso
-	grub-mkrescue \
-		-o ./bin/kernel.iso \
-		-p /boot/grub \
-		./bin/iso
-
-	cp ./bin/kernel.iso ./bin/kernel2.iso
 	# Launch qemu emulator with pointed at our iso, 1GB RAM
-	qemu-system-i386 -m 1024 -cdrom ./bin/kernel.iso -drive format=raw,media=cdrom,readonly,file=./bin/kernel2.iso
+	qemu-system-i386 \
+		-m 1024 \
+		-kernel ./bin/iso/boot/kernel.bin
 
 prep:
 	@rm -rf bin
@@ -45,6 +37,16 @@ link:
 		-T ./src/linker.ld \
 		-e start \
 		-ffreestanding -nostdlib
+
+iso:
+	# Move our grub config file to the dir for building our iso
+	cp ./src/grub.cfg ./bin/iso/boot/grub/grub.cfg
+
+	# Create iso
+	grub-mkrescue \
+		-o ./bin/kernel.iso \
+		-p /boot/grub \
+		./bin/iso
 
 # Build c (*.c) files
 $(OBJ)/%.o: $(SRC)/%.c

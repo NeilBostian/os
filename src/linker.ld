@@ -24,6 +24,5 @@ SECTIONS
     {
         *(COMMON)
         *(.bss)
-        *(.stack)
     }
 }

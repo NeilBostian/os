@@ -7,6 +7,12 @@
 
 .section .text
 reload_segments:
+    /*
+        Long-jump to the segment for kernel code (GDT offset 0x8)
+        Have to use jump to update the code segment (cs) register.
+        All other segment registers can be assigned explicitly (reload_cs below)
+        Other segment registers point to segment for kernel data (GDT offset 0x10 DEC 16)
+    */
     jmp 0x08:reload_cs
 
 reload_cs:

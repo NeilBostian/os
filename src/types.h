@@ -1,6 +1,11 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+// Bool
+#define TRUE 1
+#define FALSE 0
+typedef unsigned char bool;
+
 // Integer types
 typedef unsigned char uint8;
 typedef signed char int8;

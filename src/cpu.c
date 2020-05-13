@@ -220,13 +220,26 @@ void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, uint32 eip)
         // terminal_write_uint8(scan_code);
         // terminal_write("\n");
 
-        if (scan_code == 0x49)
+        switch (scan_code)
         {
-            terminal_pageup();
-        }
-        else if (scan_code == 0x51)
-        {
-            terminal_pagedown();
+        case 0x47:
+            terminal_pagetop();
+            break;
+        case 0x48:
+            terminal_pageup(1);
+            break;
+        case 0x49:
+            terminal_pageup(10);
+            break;
+        case 0x4F:
+            terminal_pagebottom();
+            break;
+        case 0x50:
+            terminal_pagedown(1);
+            break;
+        case 0x51:
+            terminal_pagedown(10);
+            break;
         }
     }
     else if (isr == ISR_KERNEL_PANIC)

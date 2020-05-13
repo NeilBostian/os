@@ -60,7 +60,7 @@ void terminal_clear()
         terminal_buffer[lastrow_offset + ind].color = VGA_FG_BLACK | VGA_BG_WHITE;
     }
 
-    char *msg = " Scroll (pg up/down)";
+    char *msg = " Scroll (arrow u/d = 1 line, pg up/down = 10 lines, home/end)";
     uint32 len = strlen(msg);
     for (uint32 ind = 0; ind < len; ind++)
     {
@@ -163,9 +163,13 @@ void terminal_putchar(char c)
     }
 }
 
-void terminal_pageup()
+void terminal_pagetop()
 {
-    current_row_offset -= 10;
+    terminal_pageup(MAX_ROW_OFFSET);
+}
+void terminal_pageup(uint32 offset)
+{
+    current_row_offset -= offset;
 
     if (current_row_offset < 0)
     {
@@ -175,7 +179,11 @@ void terminal_pageup()
     map_history_to_buffer(current_row_offset);
 }
 
-void terminal_pagedown()
+void terminal_pagebottom()
+{
+    terminal_pagedown(MAX_ROW_OFFSET);
+}
+void terminal_pagedown(uint32 offset)
 {
     uint32 max_offset = cursor_row - VGA_HEIGHT;
 
@@ -184,7 +192,7 @@ void terminal_pagedown()
         max_offset = MAX_ROW_OFFSET - 1;
     }
 
-    current_row_offset += 10;
+    current_row_offset += offset;
 
     if (current_row_offset < 0)
     {

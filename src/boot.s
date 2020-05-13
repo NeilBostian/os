@@ -1,3 +1,5 @@
+.intel_syntax noprefix
+
 .set MULTIBOOT_MAGIC,         0x1badb002
 .set MULTIBOOT_PAGE_ALIGN,    0x1
 .set MULTIBOOT_MEMORY_INFO,   0x2
@@ -5,10 +7,8 @@
 .set MULTIBOOT_FLAGS,         MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO # | MULTIBOOT_VIDEO_MODE
 .set MULTIBOOT_CHECKSUM,      -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS)
 
-.global stack_bottom
-.global stack_top
 .global start
-.extern boot_info
+.extern stack_top
 
 # Multiboot Section
 # See https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#The-layout-of-Multiboot-header
@@ -34,22 +34,15 @@ multiboot_start:
 .long 0    /* height */
 .long 0    /* depth (always 0 for text mode) */
 
-/* Init 16KB stack */
-.section .stack, "aw", @nobits
-stack_bottom:
-.skip 16384
-stack_top:
-
 .section .text
 start:
     # Register ebx stores a pointer to a boot_information struct to access multiboot information
     # See https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Boot-information-format
-    mov %ebx, boot_info
+    mov boot_info, ebx
     cli
     cld
 
-    call entry
+    mov ebp, stack_top
+    mov esp, ebp
 
-loop:
-    hlt
-    jmp loop
+    jmp entry
