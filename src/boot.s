@@ -1,10 +1,11 @@
 .intel_syntax noprefix
 
 .set MULTIBOOT_MAGIC,         0x1badb002
-.set MULTIBOOT_PAGE_ALIGN,    0x1
-.set MULTIBOOT_MEMORY_INFO,   0x2
-.set MULTIBOOT_VIDEO_MODE,    0x4 # When included in MULTIBOOT_FLAGS, indicates the use of Multiboot Video Settings below
-.set MULTIBOOT_FLAGS,         MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO # | MULTIBOOT_VIDEO_MODE
+.set MULTIBOOT_PAGE_ALIGN,    1 << 0x00
+.set MULTIBOOT_MEMORY_INFO,   1 << 0x01
+.set MULTIBOOT_VIDEO_MODE,    1 << 0x02 # When included in MULTIBOOT_FLAGS, indicates the use of Multiboot Video Settings below
+.set MULTIBOOT_EXPLICIT_LOAD, 1 << 0x10
+.set MULTIBOOT_FLAGS,         MULTIBOOT_PAGE_ALIGN | MULTIBOOT_MEMORY_INFO
 .set MULTIBOOT_CHECKSUM,      -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS)
 
 .global start

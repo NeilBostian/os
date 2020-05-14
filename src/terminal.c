@@ -22,7 +22,6 @@ static uint32 cursor_col = 0;
 static terminal_char terminal_history[HIST_SIZE];
 static int current_row_offset = 0;
 
-static void terminal_putchar(char c);
 static void map_history_to_buffer(uint32 row_offset);
 
 int32 strlen(const char *str)
@@ -76,7 +75,7 @@ void terminal_write(char *str)
 
     for (index; index < len; index++)
     {
-        terminal_putchar(str[index]);
+        terminal_putchar(str[index], VGA_COLOR_DEFAULT);
     }
 
     map_history_to_buffer(current_row_offset);
@@ -110,15 +109,15 @@ void terminal_writeline(char *str)
 
     for (index; index < len; index++)
     {
-        terminal_putchar(str[index]);
+        terminal_putchar(str[index], VGA_COLOR_DEFAULT);
     }
 
-    terminal_putchar('\n');
+    terminal_putchar('\n', VGA_COLOR_DEFAULT);
 
     map_history_to_buffer(current_row_offset);
 }
 
-void terminal_putchar(char c)
+void terminal_putchar(char c, vga_color color)
 {
     int loc;
 
@@ -137,6 +136,7 @@ void terminal_putchar(char c)
     default:
         loc = cursor_col + (cursor_row * VGA_WIDTH);
         terminal_history[loc].value = c;
+        terminal_history[loc].color = color;
         cursor_col++;
     }
 

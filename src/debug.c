@@ -2,6 +2,8 @@
 #include "debug.h"
 #include "terminal.h"
 
+static char *readable_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~-_=+!@#$%^&*()[{]};:'\",<.>/?\\|";
+
 void dbg_print_memory(void *ptr, uint32 num_bytes)
 {
     if (num_bytes % 16 != 0)
@@ -17,7 +19,7 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
     terminal_writeline("");
 
     uint8 nybble = (uint8)((uint32)ptr & 0x0000000F);
-    terminal_write("                 ");
+    terminal_write("           ");
 
     char chr[3];
     for (int i = 0; i < 16; i++)
@@ -30,28 +32,85 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
         nybble = (nybble + 1) % 16;
     }
     terminal_writeline("");
-    terminal_writeline("                ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿");
+    terminal_writeline("           ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿");
 
+    uint32 print_chars_len = strlen(readable_chars);
     for (int i = 0; i < num_bytes; i++)
     {
         if (i % 16 == 0)
         {
             if (i != 0)
             {
-                terminal_writeline(" ³");
+                terminal_write("³ ");
+
+                for (int j = i - 16; j < i; j++)
+                {
+                    char *base = (char *)ptr;
+                    char c = base[j];
+
+                    bool did_print = FALSE;
+                    for (int k = 0; k < print_chars_len; k++)
+                    {
+                        if (readable_chars[k] == c)
+                        {
+                            terminal_putchar(c, VGA_FG_LIGHT_GREY);
+                            did_print = TRUE;
+                            break;
+                        }
+                    }
+
+                    if (!did_print)
+                    {
+                        terminal_putchar('.', VGA_FG_DARK_GREY);
+                    }
+                }
+                terminal_writeline("");
             }
 
-            terminal_write("ADDR 0x");
+            terminal_write("0x");
             terminal_write_uint32((uint32)val);
             terminal_write(" ³");
         }
+        else
+        {
+            terminal_write(" ");
+        }
 
-        terminal_write(" ");
-        terminal_write_uint8(*val);
+        uint8 x = *val;
+        uint8_to_str(x, chr);
+        vga_color color = (x == 0 || x == 0xFF ? VGA_FG_DARK_GREY : VGA_FG_WHITE);
+
+        terminal_putchar(chr[0], color);
+        terminal_putchar(chr[1], color);
+
         val++;
     }
 
-    terminal_writeline(" ³\n                ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ");
+    terminal_write("³ ");
+
+    for (int j = num_bytes - 16; j < num_bytes; j++)
+    {
+        char *base = (char *)ptr;
+        char c = base[j];
+
+        bool did_print = FALSE;
+        for (int k = 0; k < print_chars_len; k++)
+        {
+            if (readable_chars[k] == c)
+            {
+                terminal_putchar(c, VGA_FG_LIGHT_GREY);
+                did_print = TRUE;
+                break;
+            }
+        }
+
+        if (!did_print)
+        {
+            terminal_putchar('.', VGA_FG_DARK_GREY);
+        }
+    }
+    terminal_writeline("");
+    terminal_writeline("           ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ");
 }
 
 void dbg_print_stack(uint32 num_items)
@@ -71,19 +130,11 @@ void dbg_print_stack(uint32 num_items)
     // EBP for this function
     uint32 ebp = dbg_getreg_ebp();
 
-    terminal_write("EBP=0x");
-    terminal_write_uint32(ebp);
-    terminal_writeline("");
-
     volatile uint32 *val = (uint32 *)ebp;
 
     // Unwind current ebp to the caller's EBP
     ebp = *val;
     val += 3;
-
-    terminal_write("EBP=0x");
-    terminal_write_uint32(ebp);
-    terminal_writeline("");
 
     terminal_write("Stack contents beginning at 0x");
     terminal_write_uint32((uint32)val);

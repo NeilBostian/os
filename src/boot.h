@@ -1,19 +1,30 @@
 #ifndef BOOT_H
 #define BOOT_H
 
+#include "elf.h"
 #include "types.h"
 
-#define STACK_SIZE 1024 * 16
+// 8MB Stack
+#define STACK_SIZE 1024 * 1024 * 8
 
 // Flags for boot_info.flags0
 #define BOOT_MEM 1 << 0
 #define BOOT_DEVICE 1 << 1
 #define BOOT_CMDLINE 1 << 2
+#define BOOT_SYMS5 1 << 5
 #define BOOT_MMAP 1 << 6
 #define BOOT_DRIVES 1 << 7
 
 // Flags for boot_info.flags1 (beginning offset 8 in 32-bit flags)
 #define BOOT_BOOTLOADER_NAME 1 << 1 // Flag 9 in 32-bit flags
+
+typedef struct
+{
+    uint32 entry_count;
+    uint32 entry_size;
+    elf32_section_header *header;
+    uint32 section_header_index;
+} __attribute__((packed)) boot_elf_info;
 
 typedef struct
 {
@@ -46,10 +57,7 @@ typedef struct
     uint32 mods_addr;
 
     /* 28-43 */
-    uint32 syms_tabsize;
-    uint32 syms_strsize;
-    uint32 syms_addr;
-    uint32 syms_reserved;
+    boot_elf_info elf_info;
 
     /* 44-51 */
     uint32 mmap_length;
@@ -66,11 +74,9 @@ typedef struct
 
 // .globals from boot.s, for debugging memory addresses
 boot_information *boot_info;
-extern void *start;
 
 // used by boot.s to set stack pointer
 // used by boot.c to debug stack address
-void* stack_top;
-void* stack_bottom;
+void *stack_top;
 
 #endif

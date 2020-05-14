@@ -33,20 +33,6 @@ __attribute__((noreturn)) void entry()
 
 void print_boot_info()
 {
-    terminal_writeline("symbols");
-    terminal_write(" start:       ");
-    terminal_write_uint32((uint32)start);
-    terminal_write("\n");
-    terminal_write(" entry():     ");
-    terminal_write_uint32((uint32)entry);
-    terminal_write("\n");
-    terminal_write(" stack_top:   ");
-    terminal_write_uint32((uint32)stack_top);
-    terminal_write("\n");
-    terminal_write(" stack_bot:   ");
-    terminal_write_uint32((uint32)stack_bottom);
-    terminal_write("\n\n");
-
     terminal_writeline("boot_info");
     terminal_write(" flags ");
     terminal_write_uint8bin(boot_info->flags3);
@@ -142,6 +128,52 @@ void print_boot_info()
             offset += entry->size + 4;
 
             prev = entry;
+        }
+    }
+
+    if (boot_info->flags0 & BOOT_SYMS5)
+    {
+        terminal_writeline("");
+        terminal_writeline("Detected ELF header table:");
+
+        terminal_write("Address:  0x");
+        terminal_write_uint32((uint32)boot_info->elf_info.header);
+        terminal_writeline("");
+
+        terminal_write("Num:      0x");
+        terminal_write_uint32(boot_info->elf_info.entry_count);
+        terminal_writeline("");
+
+        terminal_write("Size:     0x");
+        terminal_write_uint32(boot_info->elf_info.entry_size);
+        terminal_writeline("");
+
+        terminal_write("Sections: 0x");
+        terminal_write_uint32(boot_info->elf_info.section_header_index);
+        terminal_writeline("");
+
+        elf32_section_header shstrtab = boot_info->elf_info.header[boot_info->elf_info.section_header_index];
+        void *strtab = shstrtab.sh_addr;
+        terminal_write("Found strtab at ");
+        terminal_write_uint32((uint32)strtab);
+        terminal_writeline("");
+
+        elf32_section_header *ptr = boot_info->elf_info.header;
+        for (int i = 0; i < boot_info->elf_info.entry_count; i++)
+        {
+            if (ptr->sh_type != SHT_NULL)
+            {
+                char *name = (char *)((uint32)strtab + (uint32)ptr->name_offset);
+                terminal_write("type=");
+                terminal_write_uint8(ptr->sh_type);
+                terminal_write(", addr=");
+                terminal_write_uint32((uint32)ptr->sh_addr);
+                terminal_write(", name=\"");
+                terminal_write(name);
+                terminal_write("\"\n");
+            }
+
+            ptr++;
         }
     }
 

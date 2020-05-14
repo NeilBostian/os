@@ -16,11 +16,7 @@ AS := ./toolchain/bin/i686-elf-as
 CFLAGS := -ffreestanding -nostdlib -Werror -c -I$(SRC)
 ASFLAGS := -c
 
-all: prep $(CC_OBJ_FILES) $(AS_OBJ_FILES) link
-	# Launch qemu emulator with pointed at our iso, 1GB RAM
-	qemu-system-i386 \
-		-m 1024 \
-		-kernel ./bin/iso/boot/kernel.bin
+all: run_iso
 
 prep:
 	@rm -rf bin
@@ -30,7 +26,7 @@ prep:
 	@mkdir -p ./bin/iso/boot
 	@mkdir -p ./bin/iso/boot/grub
 
-link:
+link: prep $(CC_OBJ_FILES) $(AS_OBJ_FILES)
 	$(CC) \
 		$(call rwildcard,$(OBJ),*.o) \
 		-o bin/iso/boot/kernel.bin \
@@ -38,7 +34,7 @@ link:
 		-e start \
 		-ffreestanding -nostdlib
 
-iso:
+build_iso: link
 	# Move our grub config file to the dir for building our iso
 	cp ./src/grub.cfg ./bin/iso/boot/grub/grub.cfg
 
@@ -47,6 +43,18 @@ iso:
 		-o ./bin/kernel.iso \
 		-p /boot/grub \
 		./bin/iso
+
+run_img: link
+	# Launch qemu emulator with pointed at our iso, 1GB RAM
+	qemu-system-i386 \
+		-m 64 \
+		-kernel ./bin/iso/boot/kernel.bin
+
+run_iso: build_iso
+	# Launch qemu emulator with pointed at our iso, 1GB RAM
+	qemu-system-i386 \
+		-m 64 \
+		-cdrom ./bin/kernel.iso
 
 # Build c (*.c) files
 $(OBJ)/%.o: $(SRC)/%.c

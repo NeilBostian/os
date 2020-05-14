@@ -67,12 +67,14 @@ typedef struct
     vga_color color;
 } __attribute__((packed)) terminal_char;
 
+int32 strlen(const char *str);
 void terminal_clear();
 void terminal_write(char *str);
 void terminal_write_uint8(uint8 x);
 void terminal_write_uint8bin(uint8 x);
 void terminal_write_uint32(uint32 x);
 void terminal_writeline(char *str);
+void terminal_putchar(char c, vga_color color);
 void terminal_pagetop();
 void terminal_pageup(uint32 offset);
 void terminal_pagebottom();
