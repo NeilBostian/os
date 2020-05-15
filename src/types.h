@@ -2,9 +2,13 @@
 #define TYPES_H
 
 // Bool
+#ifndef __cplusplus
+
 #define TRUE 1
 #define FALSE 0
 typedef unsigned char bool;
+
+#endif
 
 // Integer types
 typedef unsigned char uint8;

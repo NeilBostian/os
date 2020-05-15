@@ -5,26 +5,36 @@ rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(
 
 SRC := ./src
 OBJ := ./bin/obj
+CXX_SRC_FILES := $(call rwildcard,$(SRC),*.cpp)
 CC_SRC_FILES := $(call rwildcard,$(SRC),*.c)
 AS_SRC_FILES := $(call rwildcard,$(SRC),*.s)
-CC_OBJ_FILES := $(patsubst $(SRC)/%.c,$(OBJ)/%.o,$(CC_SRC_FILES))
+CXX_OBJ_FILES := $(patsubst $(SRC)/%.cpp,$(OBJ)/%_cpp.o,$(CXX_SRC_FILES))
+CC_OBJ_FILES := $(patsubst $(SRC)/%.c,$(OBJ)/%_c.o,$(CC_SRC_FILES))
 AS_OBJ_FILES := $(patsubst $(SRC)/%.s,$(OBJ)/%_s.o,$(AS_SRC_FILES))
 
+CXX := ./toolchain/bin/i686-elf-g++
 CC := ./toolchain/bin/i686-elf-gcc
 AS := ./toolchain/bin/i686-elf-as
 
+CXXFLAGS := -ffreestanding -nostdlib -Werror -c -I$(SRC)
 CFLAGS := -ffreestanding -nostdlib -Werror -c -I$(SRC)
 ASFLAGS := -c
 
 all: run_iso
 
-link: $(CC_OBJ_FILES) $(AS_OBJ_FILES)
+link: prep $(CXX_OBJ_FILES) $(CC_OBJ_FILES) $(AS_OBJ_FILES)
 	$(CC) \
-		$(call rwildcard,$(OBJ),*.o) \
+		$(CXX_OBJ_FILES) \
+		$(CC_OBJ_FILES) \
+		$(AS_OBJ_FILES) \
 		-o bin/iso/boot/kernel.bin \
 		-T ./src/linker.ld \
 		-e start \
 		-ffreestanding -nostdlib
+
+prep:
+	mkdir -p ./bin/obj
+	mkdir -p ./bin/iso/boot/grub
 
 build_iso: link
 	# Move our grub config file to the dir for building our iso
@@ -48,8 +58,13 @@ run_iso: build_iso
 		-m 64 \
 		-cdrom ./bin/kernel.iso
 
+# Build c++ (*.cpp) files
+$(OBJ)/%_cpp.o: $(SRC)/%.cpp
+	@mkdir -p $$(dirname $@)
+	$(CXX) $< -o $@ $(CXXFLAGS)
+
 # Build c (*.c) files
-$(OBJ)/%.o: $(SRC)/%.c
+$(OBJ)/%_c.o: $(SRC)/%.c
 	@mkdir -p $$(dirname $@)
 	$(CC) $< -o $@ $(CFLAGS)
 

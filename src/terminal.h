@@ -56,9 +56,6 @@
 
 #define VGA_COLOR_DEFAULT VGA_FG_LIGHT_GREY | VGA_BG_BLACK
 
-const int8 VGA_WIDTH;
-const int8 VGA_HEIGHT;
-
 typedef uint8 vga_color;
 
 typedef struct
@@ -69,11 +66,11 @@ typedef struct
 
 int32 strlen(const char *str);
 void terminal_clear();
-void terminal_write(char *str);
+void terminal_write(const char *str);
 void terminal_write_uint8(uint8 x);
 void terminal_write_uint8bin(uint8 x);
 void terminal_write_uint32(uint32 x);
-void terminal_writeline(char *str);
+void terminal_writeline(const char *str);
 void terminal_putchar(char c, vga_color color);
 void terminal_pagetop();
 void terminal_pageup(uint32 offset);

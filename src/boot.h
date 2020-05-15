@@ -75,8 +75,10 @@ typedef struct
 // .globals from boot.s, for debugging memory addresses
 boot_information *boot_info;
 
+#ifndef __cplusplus
 // used by boot.s to set stack pointer
 // used by boot.c to debug stack address
 void *stack_top;
+#endif
 
 #endif

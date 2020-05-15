@@ -1,9 +1,19 @@
 #include "boot.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 #include "cpu.h"
-#include "terminal.h"
-#include "types.h"
-#include "drivers/ATA.h"
-#include "debug.h"
+#include <terminal.h>
+#include <types.h>
+#include <drivers/ATA.h>
+#include <debug.h>
+
+#ifdef __cplusplus
+}
+#endif
 
 __attribute__((aligned(4096))) static uint8 stack[STACK_SIZE];
 void *stack_bottom = stack;
@@ -11,23 +21,26 @@ void *stack_top = stack + STACK_SIZE;
 
 static void print_boot_info();
 
-__attribute__((noreturn)) void entry()
+extern "C"
 {
-    terminal_clear();
-    create_gdt();
-    create_idt();
-
-    print_boot_info();
-
-    // terminal_writeline("");
-    // terminal_writeline("Testing ATA");
-    // test_atapio();
-    // terminal_writeline("Test complete.");
-    // terminal_pagetop();
-
-    while (1)
+    __attribute__((noreturn)) void entry()
     {
-        asm("hlt");
+        terminal_clear();
+        create_gdt();
+        create_idt();
+
+        print_boot_info();
+
+        // terminal_writeline("");
+        // terminal_writeline("Testing ATA");
+        // test_atapio();
+        // terminal_writeline("Test complete.");
+        // terminal_pagetop();
+
+        while (1)
+        {
+            asm("hlt");
+        }
     }
 }
 
@@ -42,6 +55,12 @@ void print_boot_info()
     terminal_write("\n");
     terminal_writeline("       |      |       |       |       |");
     terminal_writeline("       31     24      16      8       0");
+    terminal_write(" stack_top:   ");
+    terminal_write_uint32((uint32)stack_top);
+    terminal_write("\n");
+    terminal_write(" stack_bot:   ");
+    terminal_write_uint32((uint32)stack_bottom);
+    terminal_write("\n\n");
 
     if (boot_info->flags0 & BOOT_MEM)
     {
@@ -90,9 +109,9 @@ void print_boot_info()
 
         uint16 ct = 0;
         uint32 max_addr = (uint32)boot_info->mmap_addr + boot_info->mmap_length;
-        void *offset = boot_info->mmap_addr;
+        uint32 offset = (uint32)boot_info->mmap_addr;
         mmap_entry *prev = 0;
-        for (; (uint32)offset < max_addr; ct++)
+        for (; offset < max_addr; ct++)
         {
             mmap_entry *entry = (mmap_entry *)offset;
 
@@ -164,7 +183,9 @@ void print_boot_info()
             if (ptr->sh_type != SHT_NULL)
             {
                 char *name = (char *)((uint32)strtab + (uint32)ptr->name_offset);
-                terminal_write("type=");
+                terminal_write("ind=");
+                terminal_write_uint8((uint8)i);
+                terminal_write(", type=");
                 terminal_write_uint8(ptr->sh_type);
                 terminal_write(", addr=");
                 terminal_write_uint32((uint32)ptr->sh_addr);
@@ -175,6 +196,11 @@ void print_boot_info()
 
             ptr++;
         }
+
+        terminal_writeline("");
+
+        elf32_section_header pgr_strtab = boot_info->elf_info.header[8];
+        dbg_print_memory(pgr_strtab.sh_addr, 256);
     }
 
     if (boot_info->flags0 & BOOT_DRIVES)

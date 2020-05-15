@@ -68,7 +68,7 @@ void terminal_clear()
     }
 }
 
-void terminal_write(char *str)
+void terminal_write(const char *str)
 {
     int index = 0,
         len = strlen(str);
@@ -102,7 +102,7 @@ void terminal_write_uint32(uint32 x)
     terminal_write(str);
 }
 
-void terminal_writeline(char *str)
+void terminal_writeline(const char *str)
 {
     int index = 0,
         len = strlen(str);
