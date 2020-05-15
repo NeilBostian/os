@@ -55,7 +55,7 @@ void test_ata()
     //dump_regs_primary();
 }
 
-bool first_interrupt = TRUE;
+bool first_interrupt = true;
 void ata_handle_irq()
 {
     if (first_interrupt)
@@ -81,7 +81,7 @@ void ata_handle_irq()
         outb(PRIMARY_IO_7, 0x00);
         outb(PRIMARY_IO_7, 0x00);
 
-        first_interrupt = FALSE;
+        first_interrupt = false;
     }
     else
     {

@@ -1,5 +1,4 @@
-#ifndef TERMINAL_H
-#define TERMINAL_H
+#pragma once
 
 #include "types.h"
 
@@ -64,6 +63,11 @@ typedef struct
     vga_color color;
 } __attribute__((packed)) terminal_char;
 
+typedef struct
+{
+    char val[9];
+} uint32_str;
+
 int32 strlen(const char *str);
 void terminal_clear();
 void terminal_write(const char *str);
@@ -79,5 +83,3 @@ void terminal_pagedown(uint32 offset);
 void uint8_to_str(uint8 x, char *res);
 void uint8_to_strbin(uint8 x, char *res);
 void uint32_to_str(uint32 x, char *res);
-
-#endif

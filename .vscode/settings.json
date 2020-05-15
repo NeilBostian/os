@@ -1,6 +1,7 @@
 {
     "files.associations": {
-        "*.def": "c"
+        "*.def": "cpp",
+        "string": "cpp"
     },
-    "files.encoding": "cp437"
+    "files.encoding": "iso885915"
 }

@@ -24,7 +24,7 @@ static int current_row_offset = 0;
 
 static void map_history_to_buffer(uint32 row_offset);
 
-int32 strlen(const char *str)
+int32 strlen(string str)
 {
     int32 ret = 0;
     while (str[ret] != 0)
@@ -59,7 +59,7 @@ void terminal_clear()
         terminal_buffer[lastrow_offset + ind].color = VGA_FG_BLACK | VGA_BG_WHITE;
     }
 
-    char *msg = " Scroll (arrow u/d = 1 line, pg up/down = 10 lines, home/end)";
+    string msg = " Scroll (arrow u/d = 1 line, pg up/down = 10 lines, home/end)";
     uint32 len = strlen(msg);
     for (uint32 ind = 0; ind < len; ind++)
     {
@@ -68,7 +68,7 @@ void terminal_clear()
     }
 }
 
-void terminal_write(const char *str)
+void terminal_write(string str)
 {
     int index = 0,
         len = strlen(str);
@@ -102,7 +102,7 @@ void terminal_write_uint32(uint32 x)
     terminal_write(str);
 }
 
-void terminal_writeline(const char *str)
+void terminal_writeline(string str)
 {
     int index = 0,
         len = strlen(str);
@@ -185,7 +185,16 @@ void terminal_pagebottom()
 }
 void terminal_pagedown(uint32 offset)
 {
-    uint32 max_offset = cursor_row - VGA_HEIGHT;
+    uint32 max_offset;
+
+    if (cursor_row < VGA_HEIGHT)
+    {
+        max_offset = 0;
+    }
+    else
+    {
+        max_offset = cursor_row - VGA_HEIGHT;
+    }
 
     if (max_offset >= MAX_ROW_OFFSET)
     {

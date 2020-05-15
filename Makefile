@@ -6,26 +6,21 @@ rwildcard = $(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(
 SRC := ./src
 OBJ := ./bin/obj
 CXX_SRC_FILES := $(call rwildcard,$(SRC),*.cpp)
-CC_SRC_FILES := $(call rwildcard,$(SRC),*.c)
 AS_SRC_FILES := $(call rwildcard,$(SRC),*.s)
 CXX_OBJ_FILES := $(patsubst $(SRC)/%.cpp,$(OBJ)/%_cpp.o,$(CXX_SRC_FILES))
-CC_OBJ_FILES := $(patsubst $(SRC)/%.c,$(OBJ)/%_c.o,$(CC_SRC_FILES))
 AS_OBJ_FILES := $(patsubst $(SRC)/%.s,$(OBJ)/%_s.o,$(AS_SRC_FILES))
 
 CXX := ./toolchain/bin/i686-elf-g++
-CC := ./toolchain/bin/i686-elf-gcc
 AS := ./toolchain/bin/i686-elf-as
 
 CXXFLAGS := -ffreestanding -nostdlib -Werror -c -I$(SRC)
-CFLAGS := -ffreestanding -nostdlib -Werror -c -I$(SRC)
 ASFLAGS := -c
 
 all: run_iso
 
-link: prep $(CXX_OBJ_FILES) $(CC_OBJ_FILES) $(AS_OBJ_FILES)
-	$(CC) \
+link: prep $(CXX_OBJ_FILES) $(AS_OBJ_FILES)
+	$(CXX) \
 		$(CXX_OBJ_FILES) \
-		$(CC_OBJ_FILES) \
 		$(AS_OBJ_FILES) \
 		-o bin/iso/boot/kernel.bin \
 		-T ./src/linker.ld \
@@ -33,6 +28,7 @@ link: prep $(CXX_OBJ_FILES) $(CC_OBJ_FILES) $(AS_OBJ_FILES)
 		-ffreestanding -nostdlib
 
 prep:
+	rm -rf ./bin
 	mkdir -p ./bin/obj
 	mkdir -p ./bin/iso/boot/grub
 
@@ -62,11 +58,6 @@ run_iso: build_iso
 $(OBJ)/%_cpp.o: $(SRC)/%.cpp
 	@mkdir -p $$(dirname $@)
 	$(CXX) $< -o $@ $(CXXFLAGS)
-
-# Build c (*.c) files
-$(OBJ)/%_c.o: $(SRC)/%.c
-	@mkdir -p $$(dirname $@)
-	$(CC) $< -o $@ $(CFLAGS)
 
 # Build assembly (*.s) files
 $(OBJ)/%_s.o: $(SRC)/%.s

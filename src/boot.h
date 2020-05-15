@@ -1,11 +1,9 @@
-#ifndef BOOT_H
-#define BOOT_H
+#pragma once
 
 #include "elf.h"
 #include "types.h"
 
-// 8MB Stack
-#define STACK_SIZE 1024 * 1024 * 8
+#define STACK_SIZE 1024 * 64
 
 // Flags for boot_info.flags0
 #define BOOT_MEM 1 << 0
@@ -71,14 +69,3 @@ typedef struct
     uint32 config_table;
     char *boot_loader_name;
 } __attribute__((packed)) boot_information;
-
-// .globals from boot.s, for debugging memory addresses
-boot_information *boot_info;
-
-#ifndef __cplusplus
-// used by boot.s to set stack pointer
-// used by boot.c to debug stack address
-void *stack_top;
-#endif
-
-#endif

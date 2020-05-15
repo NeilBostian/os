@@ -1,8 +1,11 @@
-#include "boot.h"
 #include "debug.h"
 #include "terminal.h"
 
-static char *readable_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~-_=+!@#$%^&*()[{]};:'\",<.>/?\\|";
+// Defined in boot.cpp
+extern void *stack_bottom;
+extern void *stack_top;
+
+static string readable_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~-_=+!@#$%^&*()[{]};:'\",<.>/?\\|";
 
 void dbg_print_memory(void *ptr, uint32 num_bytes)
 {
@@ -11,7 +14,7 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
         num_bytes = ((num_bytes / 16) + 1) * 16;
     }
 
-    volatile uint8 *val = ptr;
+    uint8 *val = (uint8 *)ptr;
 
     terminal_write("Memory contents beginning at 0x");
     terminal_write_uint32((uint32)ptr);
@@ -48,13 +51,13 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
                     char *base = (char *)ptr;
                     char c = base[j];
 
-                    bool did_print = FALSE;
+                    bool did_print = false;
                     for (int k = 0; k < print_chars_len; k++)
                     {
                         if (readable_chars[k] == c)
                         {
                             terminal_putchar(c, VGA_FG_LIGHT_GREY);
-                            did_print = TRUE;
+                            did_print = true;
                             break;
                         }
                     }
@@ -93,13 +96,13 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
         char *base = (char *)ptr;
         char c = base[j];
 
-        bool did_print = FALSE;
+        bool did_print = false;
         for (int k = 0; k < print_chars_len; k++)
         {
             if (readable_chars[k] == c)
             {
                 terminal_putchar(c, VGA_FG_LIGHT_GREY);
-                did_print = TRUE;
+                did_print = true;
                 break;
             }
         }
@@ -116,16 +119,16 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
 void dbg_print_stack(uint32 num_items)
 {
     /*
-        When this function is called, the stack looks like the below (dummy addresses)
+    When this function is called, the stack looks like the below (dummy addresses)
 
-        STACK_BOTTOM
-        0xFFF4 <-- esp
-        0xFFF0 <-- ebp
-        0xFFEC <-- return address to caller
-        0xFFE8 <-- num_items parameter
-        0xFFE4 <-- last item on the stack from the caller (possibly registers or local vars)
-        STACK_TOP
-    */
+    STACK_BOTTOM
+    0xFFF4 <-- esp
+    0xFFF0 <-- ebp
+    0xFFEC <-- return address to caller
+    0xFFE8 <-- num_items parameter
+    0xFFE4 <-- last item on the stack from the caller (possibly registers or local vars)
+    STACK_TOP
+*/
 
     // EBP for this function
     uint32 ebp = dbg_getreg_ebp();
@@ -141,7 +144,7 @@ void dbg_print_stack(uint32 num_items)
     terminal_writeline(":");
 
     // Track if the previous stack item was ebp
-    bool prev_ebp = FALSE;
+    bool prev_ebp = false;
 
     for (uint32 i = 0; i < num_items && (uint32)val < (uint32)stack_top; i++)
     {
@@ -162,11 +165,11 @@ void dbg_print_stack(uint32 num_items)
         {
             terminal_write(" <-- EBP");
             ebp = i_val;
-            prev_ebp = TRUE;
+            prev_ebp = true;
         }
         else
         {
-            prev_ebp = FALSE;
+            prev_ebp = false;
         }
 
         terminal_writeline("");

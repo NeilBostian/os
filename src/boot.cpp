@@ -1,46 +1,43 @@
-#include "boot.h"
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
+#include <boot.h>
 #include "cpu.h"
-#include <terminal.h>
-#include <types.h>
-#include <drivers/ATA.h>
-#include <debug.h>
-
-#ifdef __cplusplus
-}
-#endif
+#include "terminal.h"
+#include "types.h"
+#include "drivers/ATA.h"
+#include "debug.h"
 
 __attribute__((aligned(4096))) static uint8 stack[STACK_SIZE];
 void *stack_bottom = stack;
 void *stack_top = stack + STACK_SIZE;
 
+static boot_information *boot_info;
 static void print_boot_info();
+static void entry_cpp();
 
-extern "C"
+extern "C" __attribute__((noreturn)) void entry(boot_information *lboot_info)
 {
-    __attribute__((noreturn)) void entry()
+    // This has to be prior to changing the stack
+    boot_info = lboot_info;
+
+    // Setup stack
+    asm("mov %0, %%ebp" ::"m"(stack_top));
+    asm("mov %ebp, %esp");
+
+    // Real code begins here
+    terminal_clear();
+    create_gdt();
+    create_idt();
+
+    print_boot_info();
+
+    // terminal_writeline("");
+    // terminal_writeline("Testing ATA");
+    // test_atapio();
+    // terminal_writeline("Test complete.");
+    // terminal_pagetop();
+
+    while (1)
     {
-        terminal_clear();
-        create_gdt();
-        create_idt();
-
-        print_boot_info();
-
-        // terminal_writeline("");
-        // terminal_writeline("Testing ATA");
-        // test_atapio();
-        // terminal_writeline("Test complete.");
-        // terminal_pagetop();
-
-        while (1)
-        {
-            asm("hlt");
-        }
+        asm("hlt");
     }
 }
 
