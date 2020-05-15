@@ -37,42 +37,56 @@ uint8 get_error_register()
     return inb(PRIMARY_IO_1);
 }
 
-void test_atapio()
+void test_ata()
 {
-    dump_regs_primary();
+    //dump_regs_primary();
 
     // Drive Select
     outb(PRIMARY_IO_6, 0x00);
 
-
-    // isDMA = 1
-    outb(PRIMARY_IO_1, 1);
-    outb(PRIMARY_IO_4, 0);
+    // isDMA = 0
+    outb(PRIMARY_IO_1, 0);
+    outb(PRIMARY_IO_4, 32);
     outb(PRIMARY_IO_5, 0);
 
     // Command Opcode "PACKET"
     outb(PRIMARY_IO_7, 0xA0);
 
-    // Command stream
-    outb(PRIMARY_IO_7, 0x43);
-    outb(PRIMARY_IO_7, 0x00);
+    //dump_regs_primary();
+}
 
-    outb(PRIMARY_IO_7, 0x01);
-    outb(PRIMARY_IO_7, 0x00);
+bool first_interrupt = TRUE;
+void ata_handle_irq()
+{
+    if (first_interrupt)
+    {
+        dump_regs_primary();
 
-    outb(PRIMARY_IO_7, 0x00);
-    outb(PRIMARY_IO_7, 0x00);
+        // Command stream
+        outb(PRIMARY_IO_7, 0x43);
+        outb(PRIMARY_IO_7, 0x00);
 
-    outb(PRIMARY_IO_7, 0x00);
-    outb(PRIMARY_IO_7, 0x00);
+        outb(PRIMARY_IO_7, 0x01);
+        outb(PRIMARY_IO_7, 0x00);
 
-    outb(PRIMARY_IO_7, 0x0C);
-    outb(PRIMARY_IO_7, 0x40);
+        outb(PRIMARY_IO_7, 0x00);
+        outb(PRIMARY_IO_7, 0x00);
 
-    outb(PRIMARY_IO_7, 0x00);
-    outb(PRIMARY_IO_7, 0x00);
+        outb(PRIMARY_IO_7, 0x00);
+        outb(PRIMARY_IO_7, 0x00);
 
-    dump_regs_primary();
+        outb(PRIMARY_IO_7, 0x0C);
+        outb(PRIMARY_IO_7, 0x40);
+
+        outb(PRIMARY_IO_7, 0x00);
+        outb(PRIMARY_IO_7, 0x00);
+
+        first_interrupt = FALSE;
+    }
+    else
+    {
+        dump_regs_primary();
+    }
 }
 
 void dump_regs_primary()

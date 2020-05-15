@@ -1,10 +1,12 @@
 #include "types.h"
 #include "terminal.h"
 #include "cpu.h"
+#include "drivers/ATA.h"
 #include "serial.h"
 
 #define PIC_ISR_OFFSET 0x20
 #define ISR_KEYBOARD PIC_ISR_OFFSET + 1
+#define ISR_ATA_PRIMARY PIC_ISR_OFFSET + 14
 #define ISR_KERNEL_PANIC 0x30
 
 #define PIC1_CMD 0x20
@@ -245,6 +247,11 @@ void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, uint32 eip)
     else if (isr == ISR_KERNEL_PANIC)
     {
         panic_internal();
+    }
+    else if (isr == ISR_ATA_PRIMARY)
+    {
+        terminal_writeline("Received ATA Primary Interrupt");
+        ata_handle_irq();
     }
     else
     {

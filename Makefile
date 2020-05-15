@@ -18,15 +18,7 @@ ASFLAGS := -c
 
 all: run_iso
 
-prep:
-	@rm -rf bin
-	@mkdir bin
-	@mkdir -p ./bin/obj
-	@mkdir -p ./bin/iso
-	@mkdir -p ./bin/iso/boot
-	@mkdir -p ./bin/iso/boot/grub
-
-link: prep $(CC_OBJ_FILES) $(AS_OBJ_FILES)
+link: $(CC_OBJ_FILES) $(AS_OBJ_FILES)
 	$(CC) \
 		$(call rwildcard,$(OBJ),*.o) \
 		-o bin/iso/boot/kernel.bin \

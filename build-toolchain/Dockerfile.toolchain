@@ -33,11 +33,11 @@ RUN make install
 RUN rm -rf /toolchain/build_binutils
 
 WORKDIR /toolchain/build_gcc
-RUN ./gcc-9.3.0/configure --target=$TARGET --prefix=/toolchain/bin --disable-nls --without-headers --enable-languages=c
-RUN make all-gcc
-RUN make all-target-libgcc
-RUN make install-gcc
-RUN make install-target-libgcc
+RUN ./gcc-9.3.0/configure --target=$TARGET --prefix=/toolchain/bin --disable-nls --without-headers --enable-languages=c,c++
+RUN make all-gcc -j 4
+RUN make all-target-libgcc -j 4
+RUN make install-gcc -j 4
+RUN make install-target-libgcc -j 4
 RUN rm -rf /toolchain/build_gcc
 
 WORKDIR /toolchain/bin

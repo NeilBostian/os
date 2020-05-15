@@ -5,7 +5,7 @@ docker build . \
     -t toolchain:i686-elf \
     --build-arg TARGET=i686-elf
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/.."
 
 rm -rf $DIR"/toolchain"
 
