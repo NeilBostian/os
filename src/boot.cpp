@@ -35,6 +35,8 @@ extern "C" __attribute__((noreturn)) void entry(boot_information *lboot_info)
     // terminal_writeline("Test complete.");
     // terminal_pagetop();
 
+    asm("int $0x30");
+
     while (1)
     {
         asm("hlt");
@@ -147,39 +149,59 @@ void print_boot_info()
         }
     }
 
-    if (boot_info->flags0 & BOOT_SYMS5)
+    if (boot_info->flags0 & BOOT_SYMBOL_TABLE)
+    {
+        terminal_writeline("");
+        terminal_writeline("Detected symbol table:");
+
+        terminal_write("Address:  0x");
+        terminal_write_uint32(boot_info->u.sym_tab.addr);
+        terminal_writeline("");
+
+        terminal_write("str_size: 0x");
+        terminal_write_uint32(boot_info->u.sym_tab.str_size);
+        terminal_writeline("");
+
+        terminal_write("tab_size: 0x");
+        terminal_write_uint32(boot_info->u.sym_tab.tab_size);
+        terminal_writeline("");
+
+        dbg_print_memory((void *)boot_info->u.sym_tab.addr, 256);
+    }
+
+    if (boot_info->flags0 & BOOT_ELF_SECTION_HEADER)
     {
         terminal_writeline("");
         terminal_writeline("Detected ELF header table:");
 
         terminal_write("Address:  0x");
-        terminal_write_uint32((uint32)boot_info->elf_info.header);
+        terminal_write_uint32((uint32)boot_info->u.elf_info.header);
         terminal_writeline("");
 
         terminal_write("Num:      0x");
-        terminal_write_uint32(boot_info->elf_info.entry_count);
+        terminal_write_uint32(boot_info->u.elf_info.entry_count);
         terminal_writeline("");
 
         terminal_write("Size:     0x");
-        terminal_write_uint32(boot_info->elf_info.entry_size);
+        terminal_write_uint32(boot_info->u.elf_info.entry_size);
         terminal_writeline("");
 
         terminal_write("Sections: 0x");
-        terminal_write_uint32(boot_info->elf_info.section_header_index);
+        terminal_write_uint32(boot_info->u.elf_info.section_header_index);
         terminal_writeline("");
 
-        elf32_section_header shstrtab = boot_info->elf_info.header[boot_info->elf_info.section_header_index];
-        void *strtab = shstrtab.sh_addr;
+        elf32_section_header shstrtab_sec = boot_info->u.elf_info.header[boot_info->u.elf_info.section_header_index];
+        void *shstrtab = shstrtab_sec.sh_addr;
         terminal_write("Found strtab at ");
-        terminal_write_uint32((uint32)strtab);
+        terminal_write_uint32((uint32)shstrtab);
         terminal_writeline("");
 
-        elf32_section_header *ptr = boot_info->elf_info.header;
-        for (int i = 0; i < boot_info->elf_info.entry_count; i++)
+        elf32_section_header *ptr = boot_info->u.elf_info.header;
+        for (int i = 0; i < boot_info->u.elf_info.entry_count; i++)
         {
             if (ptr->sh_type != SHT_NULL)
             {
-                char *name = (char *)((uint32)strtab + (uint32)ptr->name_offset);
+                char *name = (char *)((uint32)shstrtab + (uint32)ptr->name_offset);
                 terminal_write("ind=");
                 terminal_write_uint8((uint8)i);
                 terminal_write(", type=");
@@ -188,6 +210,10 @@ void print_boot_info()
                 terminal_write_uint32((uint32)ptr->sh_addr);
                 terminal_write(", name=\"");
                 terminal_write(name);
+                terminal_write(", e_sz=");
+                terminal_write_uint8(ptr->sh_entsize);
+                terminal_write(", sh_sz=");
+                terminal_write_uint32(ptr->sh_size);
                 terminal_write("\"\n");
             }
 
@@ -196,8 +222,57 @@ void print_boot_info()
 
         terminal_writeline("");
 
-        elf32_section_header pgr_strtab = boot_info->elf_info.header[8];
-        dbg_print_memory(pgr_strtab.sh_addr, 256);
+        elf32_section_header shsymtab = boot_info->u.elf_info.header[7];
+        int numEntries = shsymtab.sh_size / shsymtab.sh_entsize;
+        elf32_symtab_entry *symtab = (elf32_symtab_entry *)shsymtab.sh_addr;
+        terminal_write("Found symtab at ");
+        terminal_write_uint32((uint32)symtab);
+        terminal_writeline("");
+
+        void* strtab = boot_info->u.elf_info.header[8].sh_addr;
+
+        for (int i = 0; i < numEntries; i++)
+        {
+            elf32_symtab_entry e = symtab[i];
+            elf32_section_header h = boot_info->u.elf_info.header[e.st_shndx];
+            string sym_name = (string)((uint32)strtab + e.st_name);
+            string sect_name = (string)((uint32)shstrtab + (uint32)h.name_offset);
+
+            terminal_write("Addr 0x");
+            terminal_write_uint32(e.st_value);
+            terminal_write(", name=");
+            //terminal_write_uint32(e.st_name);
+            if (e.st_name != 0)
+            {
+                terminal_write(sym_name);
+            }
+            terminal_write(", section=");
+            terminal_write(sect_name);
+            terminal_write(", type=");
+
+            uint8 type = e.st_info & 0x0F;
+
+            switch (type)
+            {
+            case 0x00:
+                terminal_write("None");
+                break;
+            case 0x01:
+                terminal_write("Obj");
+                break;
+            case 0x02:
+                terminal_write("Func");
+                break;
+            case 0x03:
+                terminal_write("Sect");
+                break;
+            case 0x04:
+                terminal_write("File");
+                break;
+            }
+
+            terminal_writeline("");
+        }
     }
 
     if (boot_info->flags0 & BOOT_DRIVES)

@@ -41,4 +41,15 @@ typedef struct
     uint32 sh_entsize;
 } __attribute__((packed)) elf32_section_header;
 
+// See https://docs.oracle.com/cd/E23824_01/html/819-0690/chapter6-79797.html
+typedef struct
+{
+    uint32 st_name;
+    uint32 st_value;
+    uint32 st_size;
+    uint8 st_info;
+    uint8 st_other;
+    uint16 st_shndx;
+} elf32_symtab_entry;
+
 #endif

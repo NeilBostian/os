@@ -44,4 +44,4 @@ start:
     # See https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Boot-information-format
     push ebx
 
-    jmp entry
+    call entry

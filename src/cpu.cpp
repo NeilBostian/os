@@ -3,6 +3,7 @@
 #include "cpu.h"
 #include "drivers/ATA.h"
 #include "serial.h"
+#include "debug.h"
 
 #define PIC_ISR_OFFSET 0x20
 #define ISR_KEYBOARD PIC_ISR_OFFSET + 1
@@ -181,7 +182,8 @@ extern "C" void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, 
     }
     else if (isr == ISR_KERNEL_PANIC)
     {
-        panic_internal();
+        dbg_print_stack(64);
+        //panic_internal();
     }
     else if (isr == ISR_ATA_PRIMARY)
     {

@@ -9,12 +9,21 @@
 #define BOOT_MEM 1 << 0
 #define BOOT_DEVICE 1 << 1
 #define BOOT_CMDLINE 1 << 2
-#define BOOT_SYMS5 1 << 5
+#define BOOT_SYMBOL_TABLE 1 << 4
+#define BOOT_ELF_SECTION_HEADER 1 << 5
 #define BOOT_MMAP 1 << 6
 #define BOOT_DRIVES 1 << 7
 
 // Flags for boot_info.flags1 (beginning offset 8 in 32-bit flags)
 #define BOOT_BOOTLOADER_NAME 1 << 1 // Flag 9 in 32-bit flags
+
+typedef struct
+{
+    uint32 tab_size;
+    uint32 str_size;
+    uint32 addr;
+    uint32 __reserved;
+} symbol_table;
 
 typedef struct
 {
@@ -55,7 +64,10 @@ typedef struct
     uint32 mods_addr;
 
     /* 28-43 */
-    boot_elf_info elf_info;
+    union {
+        symbol_table sym_tab;
+        boot_elf_info elf_info;
+    } u;
 
     /* 44-51 */
     uint32 mmap_length;
