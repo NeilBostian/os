@@ -2,9 +2,26 @@
 #include <Stack.h>
 #include <Terminal.h>
 
+// Returns a pointer to the next address that will be executed after this function is called.
+// AKA - returns the return address of this function
+extern "C" uint32 debug_getreg_eip();
+
+// Returns register %ebp
+extern "C" uint32 debug_getreg_ebp();
+
 static string readable_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~-_=+!@#$%^&*()[{]};:'\",<.>/?\\|";
 
-void dbg_print_memory(void *ptr, uint32 num_bytes)
+uint32 Debug::GetRegEBP()
+{
+    return debug_getreg_ebp();
+}
+
+uint32 Debug::GetRegEIP()
+{
+    return debug_getreg_eip();
+}
+
+void Debug::PrintMemory(void *ptr, uint32 num_bytes)
 {
     if (num_bytes % 16 != 0)
     {
@@ -113,7 +130,7 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
     Terminal::WriteLine("           ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ");
 }
 
-void dbg_print_stack(uint32 num_items)
+void Debug::PrintStack(uint32 num_items)
 {
     /*
     When this function is called, the stack looks like the below (dummy addresses)
@@ -128,7 +145,7 @@ void dbg_print_stack(uint32 num_items)
 */
 
     // EBP for this function
-    uint32 ebp = dbg_getreg_ebp();
+    uint32 ebp = Debug::GetRegEBP();
 
     volatile uint32 *val = (uint32 *)ebp;
 

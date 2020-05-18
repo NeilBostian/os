@@ -118,17 +118,23 @@ void Terminal::WriteLine()
 {
     Terminal::Write("\n");
 }
+
 void Terminal::WriteLine(string str)
+{
+    Terminal::WriteLine(str, VGA_COLOR_DEFAULT);
+}
+
+void Terminal::WriteLine(string str, vga_color color)
 {
     int index = 0,
         len = String::Len(str);
 
     for (index; index < len; index++)
     {
-        Terminal::PutChar(str[index], VGA_COLOR_DEFAULT);
+        Terminal::PutChar(str[index], color);
     }
 
-    Terminal::PutChar('\n', VGA_COLOR_DEFAULT);
+    Terminal::PutChar('\n', color);
 
     Terminal::MapHistoryToBuffer(Terminal::CurrentRowOffset);
 }

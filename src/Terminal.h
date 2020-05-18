@@ -73,6 +73,7 @@ public:
 
     static void WriteLine();
     static void WriteLine(string str);
+    static void WriteLine(string str, vga_color color);
 
     static void PageTop();
     static void PageUp(uint32 offset);

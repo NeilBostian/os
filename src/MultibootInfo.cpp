@@ -160,7 +160,7 @@ void MultibootInfo::PrintBootSectionHeader()
         Terminal::Write(boot_info->u.sym_tab.tab_size);
         Terminal::WriteLine();
 
-        dbg_print_memory((void *)boot_info->u.sym_tab.addr, 256);
+        Debug::PrintMemory((void *)boot_info->u.sym_tab.addr, 256);
     }
     else
     {

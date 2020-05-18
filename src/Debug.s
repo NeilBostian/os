@@ -1,13 +1,13 @@
 .intel_syntax noprefix
 
-.global dbg_getreg_eip
-.global dbg_getreg_ebp
+.global debug_getreg_eip
+.global debug_getreg_ebp
 
 .section .text
-dbg_getreg_eip:
+debug_getreg_eip:
     mov eax, [esp]
     ret
 
-dbg_getreg_ebp:
+debug_getreg_ebp:
     mov eax, ebp
     ret

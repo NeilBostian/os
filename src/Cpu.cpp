@@ -1,8 +1,8 @@
 #include <Cpu.h>
 #include <Debug.h>
 #include <Drivers/ATA.h>
+#include <Drivers/Serial.h>
 #include <Interrupts.h>
-#include <Serial.h>
 #include <Terminal.h>
 #include <Types.h>
 
@@ -155,7 +155,6 @@ void Cpu::HandleInterrupt(registers cpu, uint32 isr, uint32 error_code, uint32 e
     }
     else if (isr == ISR_KERNEL_PANIC)
     {
-        dbg_print_stack(64);
         Cpu::PanicInternal();
     }
     else if (isr == ISR_ATA_PRIMARY)
@@ -289,6 +288,10 @@ void Cpu::Panic()
 
 void Cpu::PanicInternal()
 {
+    Debug::PrintStack(64);
+
+    Terminal::WriteLine("  KERNEL PANIC  ", VGA_FG_RED | VGA_BG_WHITE);
+
     // Should really make this do something
     while (1)
         ;
