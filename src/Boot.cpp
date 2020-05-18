@@ -18,11 +18,12 @@ extern "C" __attribute__((noreturn)) void entry(boot_information *lboot_info)
 
     // Real code begins here
     Terminal::Clear();
-    create_gdt();
-    create_idt();
+    Cpu::Initialize();
 
     MultibootInfo::PrintHeader();
     Terminal::WriteLine();
+
+    asm("int $0x30");
 
     while (1)
     {

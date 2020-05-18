@@ -175,7 +175,7 @@ void Terminal::PutChar(char c, vga_color color)
 
     if (Terminal::CursorRow >= MAX_ROW)
     {
-        panic();
+        Cpu::Panic();
     }
 }
 
