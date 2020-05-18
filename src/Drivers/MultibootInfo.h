@@ -71,6 +71,11 @@ class MultibootInfo
 {
 public:
     static void Initialize(boot_information *lbootInfo);
+
+    static bool HasElfInfo();
+    static elf32_section_header *GetElfSymbolTable();
+    static elf32_section_header *GetElfStringTable();
+
     static void PrintHeader();
     static void PrintMmap();
     static void PrintBootSectionHeader();
@@ -79,4 +84,7 @@ public:
 
 private:
     static boot_information *BootInfo;
+    static elf32_section_header *ElfSymbolTable;   // Symbol table
+    static elf32_section_header *ElfStringTable;   // Regular string table
+    static elf32_section_header *ElfSHStringTable; // Section Header string table
 };

@@ -1,24 +1,46 @@
 #include <Cpu/Stack.h>
 #include <Debug.h>
+#include <Drivers/Elf.h>
+#include <Drivers/MultibootInfo.h>
 #include <Terminal.h>
 
 // Returns a pointer to the next address that will be executed after this function is called.
 // AKA - returns the return address of this function
-extern "C" uint32 debug_getreg_eip();
+static uint32 debug_getreg_eip()
+{
+    return (uint32)__builtin_return_address(0);
+}
 
 // Returns register %ebp
 extern "C" uint32 debug_getreg_ebp();
 
 static string readable_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~-_=+!@#$%^&*()[{]};:'\",<.>/?\\|";
 
-uint32 Debug::GetRegEBP()
+elf32_symtab_entry *Debug::GetSymbolFromAddress(uint32 addr)
 {
-    return debug_getreg_ebp();
-}
+    elf32_section_header *symtab = MultibootInfo::GetElfSymbolTable();
 
-uint32 Debug::GetRegEIP()
-{
-    return debug_getreg_eip();
+    uint32 symtab_len = symtab->sh_size / symtab->sh_entsize;
+
+    uint32 indexForAddr = 0;
+
+    for (uint32 i = 0; i < symtab_len; i++)
+    {
+        elf32_symtab_entry *e = (elf32_symtab_entry *)symtab->sh_addr + i;
+
+        uint8 type = e->st_info & 0x0F;
+        if (type == 0x02 && e->st_value < addr && e->st_size > 0)
+        {
+            elf32_symtab_entry *currMax = (elf32_symtab_entry *)symtab->sh_addr + indexForAddr;
+
+            if (i == 0 || e->st_value > currMax->st_value)
+            {
+                indexForAddr = i;
+            }
+        }
+    }
+
+    return (elf32_symtab_entry *)symtab->sh_addr + indexForAddr;
 }
 
 void Debug::PrintMemory(void *ptr, uint32 num_bytes)
@@ -142,16 +164,19 @@ void Debug::PrintStack(uint32 num_items)
     0xFFE8 <-- num_items parameter
     0xFFE4 <-- last item on the stack from the caller (possibly registers or local vars)
     STACK_TOP
-*/
+    */
 
     // EBP for this function
-    uint32 ebp = Debug::GetRegEBP();
+    uint32 ebp = debug_getreg_ebp();
 
-    volatile uint32 *val = (uint32 *)ebp;
+    Debug::PrintStack(num_items, ebp);
+}
 
-    // Unwind current ebp to the caller's EBP
-    ebp = *val;
-    val += 3;
+void Debug::PrintStack(uint32 num_items, uint32 ebp)
+{
+    uint32 stack_top = (uint32)Stack::GetTopAddress();
+
+    uint32 *val = (uint32 *)ebp;
 
     Terminal::Write("Stack contents beginning at 0x");
     Terminal::Write((uint32)val);
@@ -160,7 +185,6 @@ void Debug::PrintStack(uint32 num_items)
     // Track if the previous stack item was ebp
     bool prev_ebp = false;
 
-    uint32 stack_top = (uint32)Stack::GetTopAddress();
     for (uint32 i = 0; i < num_items && (uint32)val < stack_top; i++)
     {
         uint32 i_ptr = (uint32)val;
@@ -173,12 +197,14 @@ void Debug::PrintStack(uint32 num_items)
 
         if (prev_ebp)
         {
-            Terminal::Write(" <-- RET ADDRESS");
+            Terminal::Write(" <-- From ");
+            Debug::WriteSymbol(i_val);
         }
 
         if (i_ptr == ebp)
         {
             Terminal::Write(" <-- EBP");
+
             ebp = i_val;
             prev_ebp = true;
         }
@@ -187,13 +213,84 @@ void Debug::PrintStack(uint32 num_items)
             prev_ebp = false;
         }
 
+        val++;
+
+        if ((uint32)val >= stack_top)
+        {
+            Terminal::WriteLine(" <-- Stack::Top");
+        }
+
         Terminal::WriteLine();
+    }
+}
+
+void Debug::PrintCallStack(uint32 num_items)
+{
+    /*
+    When this function is called, the stack looks like the below (dummy addresses)
+
+    STACK_BOTTOM
+    0xFFF4 <-- esp
+    0xFFF0 <-- ebp
+    0xFFEC <-- return address to caller
+    0xFFE8 <-- num_items parameter
+    0xFFE4 <-- last item on the stack from the caller (possibly registers or local vars)
+    STACK_TOP
+    */
+
+    // EBP for this function
+    uint32 ebp = debug_getreg_ebp();
+
+    Debug::PrintCallStack(num_items, ebp);
+}
+
+void Debug::PrintCallStack(uint32 num_items, uint32 ebp)
+{
+    uint32 stack_top = (uint32)Stack::GetTopAddress();
+
+    uint32 *val = (uint32 *)ebp;
+
+    bool prev_ebp = false;
+
+    for (uint32 i = 0; i < num_items && (uint32)val < stack_top; i++)
+    {
+        uint32 i_ptr = (uint32)val;
+        uint32 i_val = *val;
+
+        if (prev_ebp)
+        {
+            Debug::WriteSymbol(i_val);
+            Terminal::Write(" at 0x");
+            Terminal::Write(i_val);
+            Terminal::WriteLine();
+        }
+
+        if (i_ptr == ebp)
+        {
+            ebp = i_val;
+            prev_ebp = true;
+        }
+        else
+        {
+            prev_ebp = false;
+        }
 
         val++;
     }
+}
 
-    if ((uint32)val >= stack_top)
-    {
-        Terminal::WriteLine("  <<TOP OF STACK>>");
-    }
+void Debug::WriteSymbol()
+{
+    // Looks like the call instruction to this symbol is 5 bytes, so subtract 5 to get the address that called this function
+    uint32 eip = (uint32)__builtin_return_address(0) - 5;
+    Debug::WriteSymbol(eip);
+}
+
+void Debug::WriteSymbol(uint32 eip)
+{
+    elf32_symtab_entry *symbol = Debug::GetSymbolFromAddress(eip);
+    uint32 strtab = (uint32)MultibootInfo::GetElfStringTable()->sh_addr;
+    Terminal::Write((string)(strtab + symbol->st_name));
+    Terminal::Write("+0x");
+    Terminal::Write((uint16)(eip - symbol->st_value));
 }

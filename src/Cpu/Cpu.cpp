@@ -1,7 +1,9 @@
 #include <Cpu/Cpu.h>
 #include <Cpu/Interrupts.h>
+#include <Cpu/Stack.h>
 #include <Debug.h>
 #include <Drivers/ATA.h>
+#include <Drivers/MultibootInfo.h>
 #include <Drivers/Serial.h>
 #include <Terminal.h>
 #include <Types.h>
@@ -155,7 +157,7 @@ void Cpu::HandleInterrupt(registers cpu, uint32 isr, uint32 error_code, uint32 e
     }
     else if (isr == ISR_KERNEL_PANIC)
     {
-        Cpu::PanicInternal();
+        Cpu::PanicInternal(cpu, isr, error_code, eip);
     }
     else if (isr == ISR_ATA_PRIMARY)
     {
@@ -286,11 +288,20 @@ void Cpu::Panic()
     asm("int %0" ::"i"(ISR_KERNEL_PANIC));
 }
 
-void Cpu::PanicInternal()
+void Cpu::PanicInternal(registers cpu, uint32 isr, uint32 error_code, uint32 eip)
 {
-    Debug::PrintStack(64);
-
+    Terminal::WriteLine("                ", VGA_FG_RED | VGA_BG_WHITE);
     Terminal::WriteLine("  KERNEL PANIC  ", VGA_FG_RED | VGA_BG_WHITE);
+    Terminal::WriteLine("                ", VGA_FG_RED | VGA_BG_WHITE);
+
+    Terminal::WriteLine("Call Stack:", VGA_FG_WHITE | VGA_BG_BLUE);
+
+    Debug::WriteSymbol(eip);
+    Terminal::Write(" at 0x");
+    Terminal::Write(eip);
+    Terminal::WriteLine();
+
+    Debug::PrintCallStack(64, cpu.ebp);
 
     // Should really make this do something
     while (1)

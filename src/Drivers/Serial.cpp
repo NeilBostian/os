@@ -9,7 +9,7 @@ void Serial::OutB(SerialPort port, uint8 val)
 
 void Serial::OutW(SerialPort port, uint16 val)
 {
-    asm volatile("outb %0, %1" ::"a"(val), "Nd"(port));
+    asm volatile("outw %0, %1" ::"a"(val), "Nd"(port));
 }
 
 uint8 Serial::InB(SerialPort port)
@@ -27,7 +27,7 @@ uint16 Serial::InW(SerialPort port)
 {
     uint16 ret;
 
-    asm volatile("inb %1, %0"
+    asm volatile("inw %1, %0"
                  : "=a"(ret)
                  : "Nd"(port));
 

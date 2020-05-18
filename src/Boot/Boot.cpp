@@ -21,9 +21,6 @@ extern "C" __attribute__((noreturn)) void entry(boot_information *lboot_info)
     Cpu::Initialize();
 
     MultibootInfo::PrintHeader();
-    Terminal::WriteLine();
-
-    asm("int $0x30");
 
     while (1)
     {

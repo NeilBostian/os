@@ -24,5 +24,5 @@ public:
 private:
     static void InitGdt();
     static void InitIdt();
-    static void PanicInternal();
+    static void PanicInternal(registers cpu, uint32 isr, uint32 error_code, uint32 eip);
 };

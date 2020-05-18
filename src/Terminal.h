@@ -67,6 +67,7 @@ public:
     static void Write(char c);
     static void Write(char c, vga_color color);
     static void Write(uint8 x);
+    static void Write(uint16 x);
     static void Write(uint32 x);
     static void Write(string str);
     static void Write(string str, vga_color color);

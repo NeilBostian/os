@@ -80,7 +80,7 @@ void Terminal::Write(string str, vga_color color)
         Terminal::PutChar(str[index], color);
     }
 
-    Terminal::MapHistoryToBuffer(Terminal::CurrentRowOffset);
+    Terminal::PageBottom();
 }
 
 void Terminal::Write(char c)
@@ -104,6 +104,13 @@ void Terminal::WriteBin(uint8 x)
 {
     char str[9];
     String::ConvertToBin(x, str);
+    Terminal::Write(str);
+}
+
+void Terminal::Write(uint16 x)
+{
+    char str[5];
+    String::ConvertToHex(x, str);
     Terminal::Write(str);
 }
 
@@ -136,7 +143,7 @@ void Terminal::WriteLine(string str, vga_color color)
 
     Terminal::PutChar('\n', color);
 
-    Terminal::MapHistoryToBuffer(Terminal::CurrentRowOffset);
+    Terminal::PageBottom();
 }
 
 void Terminal::PutChar(char c, vga_color color)
@@ -162,21 +169,10 @@ void Terminal::PutChar(char c, vga_color color)
         Terminal::CursorCol++;
     }
 
-    // Handle validation on cursor_col before terminal_row, since the logic in cursor_col can update terminal_row
     if (Terminal::CursorCol >= VGA_WIDTH)
     {
         Terminal::CursorCol = 0;
         Terminal::CursorRow++;
-    }
-
-    if (Terminal::CursorRow - Terminal::CurrentRowOffset >= VGA_HEIGHT)
-    {
-        Terminal::CurrentRowOffset = Terminal::CursorRow - VGA_HEIGHT;
-
-        if (Terminal::CurrentRowOffset >= MAX_ROW_OFFSET)
-        {
-            Terminal::CurrentRowOffset = MAX_ROW_OFFSET - 1;
-        }
     }
 
     if (Terminal::CursorRow >= MAX_ROW)
@@ -187,7 +183,8 @@ void Terminal::PutChar(char c, vga_color color)
 
 void Terminal::PageTop()
 {
-    Terminal::PageUp(MAX_ROW_OFFSET);
+    Terminal::CurrentRowOffset = 0;
+    Terminal::MapHistoryToBuffer(Terminal::CurrentRowOffset);
 }
 
 void Terminal::PageUp(uint32 offset)
@@ -205,36 +202,36 @@ void Terminal::PageUp(uint32 offset)
 
 void Terminal::PageBottom()
 {
-    Terminal::PageDown(MAX_ROW_OFFSET);
+    if (Terminal::CursorRow >= VGA_HEIGHT)
+    {
+        Terminal::CurrentRowOffset = Terminal::CursorRow - VGA_HEIGHT + 1;
+    }
+    else
+    {
+        Terminal::CurrentRowOffset = 0;
+    }
+
+    Terminal::MapHistoryToBuffer(Terminal::CurrentRowOffset);
 }
 
 void Terminal::PageDown(uint32 offset)
 {
-    uint32 max_offset;
-
-    if (Terminal::CursorRow < VGA_HEIGHT)
+    if (Terminal::CursorRow >= VGA_HEIGHT)
     {
-        max_offset = 0;
+        uint32 maxOffset = Terminal::CursorRow - VGA_HEIGHT + 1;
+        uint32 currentOffset = Terminal::CurrentRowOffset;
+        uint32 newOffset = Terminal::CurrentRowOffset + offset;
+
+        if (newOffset < currentOffset || newOffset > maxOffset)
+        {
+            newOffset = maxOffset;
+        }
+
+        Terminal::CurrentRowOffset = newOffset;
     }
     else
     {
-        max_offset = Terminal::CursorRow - VGA_HEIGHT;
-    }
-
-    if (max_offset >= MAX_ROW_OFFSET)
-    {
-        max_offset = MAX_ROW_OFFSET - 1;
-    }
-
-    Terminal::CurrentRowOffset += offset; // integer overflow could happen here if offset is big enough, unlikely though.
-
-    if (Terminal::CurrentRowOffset < 0)
-    {
         Terminal::CurrentRowOffset = 0;
-    }
-    else if (Terminal::CurrentRowOffset >= max_offset)
-    {
-        Terminal::CurrentRowOffset = max_offset;
     }
 
     Terminal::MapHistoryToBuffer(Terminal::CurrentRowOffset);

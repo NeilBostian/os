@@ -19,9 +19,49 @@
 
 boot_information *MultibootInfo::BootInfo;
 
+elf32_section_header *MultibootInfo::ElfSymbolTable;
+elf32_section_header *MultibootInfo::ElfStringTable;
+elf32_section_header *MultibootInfo::ElfSHStringTable;
+
 void MultibootInfo::Initialize(boot_information *lbootInfo)
 {
     MultibootInfo::BootInfo = lbootInfo;
+
+    if (MultibootInfo::HasElfInfo())
+    {
+        boot_elf_info elf_info = lbootInfo->u.elf_info;
+        MultibootInfo::ElfSHStringTable = elf_info.header + elf_info.section_header_index;
+
+        for (int i = 0; i < elf_info.entry_count; i++)
+        {
+            elf32_section_header sect = elf_info.header[i];
+            string sect_name = (string)((uint32)MultibootInfo::ElfSHStringTable->sh_addr + (uint32)sect.name_offset);
+
+            if (String::Cmp(sect_name, ".strtab") && i != elf_info.section_header_index)
+            {
+                MultibootInfo::ElfStringTable = elf_info.header + i;
+            }
+            else if (String::Cmp(sect_name, ".symtab"))
+            {
+                MultibootInfo::ElfSymbolTable = elf_info.header + i;
+            }
+        }
+    }
+}
+
+bool MultibootInfo::HasElfInfo()
+{
+    return MultibootInfo::BootInfo->flags0 & BOOT_ELF_SECTION_HEADER;
+}
+
+elf32_section_header *MultibootInfo::GetElfSymbolTable()
+{
+    return MultibootInfo::ElfSymbolTable;
+}
+
+elf32_section_header *MultibootInfo::GetElfStringTable()
+{
+    return MultibootInfo::ElfStringTable;
 }
 
 void MultibootInfo::PrintHeader()
@@ -210,11 +250,11 @@ void MultibootInfo::PrintElfSectionHeader()
             Terminal::Write((uint32)ptr->sh_addr);
             Terminal::Write(", name=\"");
             Terminal::Write(name);
-            Terminal::Write(", e_sz=");
+            Terminal::Write("\", e_sz=");
             Terminal::Write(ptr->sh_entsize);
             Terminal::Write(", sh_sz=");
             Terminal::Write(ptr->sh_size);
-            Terminal::Write("\"\n");
+            Terminal::Write("\n");
         }
 
         ptr++;

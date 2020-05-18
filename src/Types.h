@@ -22,6 +22,9 @@ public:
     // Returns length of a string
     static uint32 Len(string str);
 
+    // Compare two strings for equality
+    static bool Cmp(string a, string b);
+
     // Converts `x` to a binary string, placing the result in *res.
     // *res should be a char[9].
     static void ConvertToBin(uint8 x, char *res);
@@ -29,6 +32,10 @@ public:
     // Converts `x` to a hex string, placing the result in *res.
     // *res should be a char[3].
     static void ConvertToHex(uint8 x, char *res);
+
+    // Converts `x` to a hex string, placing the result in *res.
+    // *res should be a char[5].
+    static void ConvertToHex(uint16 x, char *res);
 
     // Converts `x` to a hex string, placing the result in *res.
     // *res should be a char[9].

@@ -8,6 +8,27 @@ uint32 String::Len(string str)
     return ret;
 }
 
+bool String::Cmp(string a, string b)
+{
+    uint32 lenA = String::Len(a);
+    uint32 lenB = String::Len(b);
+
+    if (lenA != lenB)
+    {
+        return false;
+    }
+
+    for (uint32 i = 0; i < lenA; i++)
+    {
+        if (a[i] != b[i])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void String::ConvertToHex(uint8 x, char *res)
 {
     char as32[9];
@@ -33,6 +54,17 @@ void String::ConvertToBin(uint8 x, char *res)
         }
     }
     res[8] = '\0';
+}
+
+void String::ConvertToHex(uint16 x, char *res)
+{
+    char as32[9];
+    String::ConvertToHex((uint32)x, as32);
+    res[0] = as32[4];
+    res[1] = as32[5];
+    res[2] = as32[6];
+    res[3] = as32[7];
+    res[4] = '\0';
 }
 
 void String::ConvertToHex(uint32 x, char *res)

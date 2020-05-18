@@ -13,7 +13,7 @@ AS_OBJ_FILES := $(patsubst $(SRC)/%.s,$(OBJ)/%_s.o,$(AS_SRC_FILES))
 CXX := ./toolchain/bin/i686-elf-g++
 AS := ./toolchain/bin/i686-elf-as
 
-CXXFLAGS := -ffreestanding -nostdlib -Werror -c -I$(SRC)
+CXXFLAGS := -ffreestanding -nostdlib -Werror -c -I$(SRC) -fno-exceptions
 ASFLAGS := -c
 
 all: run_iso
@@ -25,7 +25,7 @@ link: prep $(CXX_OBJ_FILES) $(AS_OBJ_FILES)
 		-o bin/iso/boot/kernel.bin \
 		-T ./src/Boot/linker.ld \
 		-e start \
-		-ffreestanding -nostdlib
+		-ffreestanding -nostdlib -fno-exceptions
 
 prep:
 	rm -rf ./bin
