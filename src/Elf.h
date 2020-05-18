@@ -1,7 +1,6 @@
-#ifndef ELF_H
-#define ELF_H
+#pragma once
 
-#include "types.h"
+#include <Types.h>
 
 // See https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
 // Also https://docs.oracle.com/cd/E19683-01/817-3677/6mj8mbtc9/index.html
@@ -51,5 +50,3 @@ typedef struct
     uint8 st_other;
     uint16 st_shndx;
 } elf32_symtab_entry;
-
-#endif

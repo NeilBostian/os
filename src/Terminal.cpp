@@ -1,5 +1,5 @@
-#include "terminal.h"
-#include "cpu.h"
+#include <Terminal.h>
+#include <Cpu.h>
 
 // Number of characters in a row
 #define VGA_WIDTH 80
@@ -114,6 +114,10 @@ void Terminal::Write(uint32 x)
     Terminal::Write(str);
 }
 
+void Terminal::WriteLine()
+{
+    Terminal::Write("\n");
+}
 void Terminal::WriteLine(string str)
 {
     int index = 0,

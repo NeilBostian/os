@@ -1,9 +1,10 @@
-#include "types.h"
-#include "terminal.h"
-#include "cpu.h"
-#include "drivers/ATA.h"
-#include "serial.h"
-#include "debug.h"
+
+#include <Cpu.h>
+#include <Debug.h>
+#include <Drivers/ATA.h>
+#include <Serial.h>
+#include <Terminal.h>
+#include <Types.h>
 
 #define PIC_ISR_OFFSET 0x20
 #define ISR_KEYBOARD PIC_ISR_OFFSET + 1

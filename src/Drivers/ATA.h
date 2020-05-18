@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include <Types.h>
 
 void ata_handle_irq();
 uint8 get_status_register();

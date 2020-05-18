@@ -1,9 +1,6 @@
-#include "debug.h"
-#include "terminal.h"
-
-// Defined in boot.cpp
-extern void *stack_bottom;
-extern void *stack_top;
+#include <Debug.h>
+#include <Stack.h>
+#include <Terminal.h>
 
 static string readable_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~-_=+!@#$%^&*()[{]};:'\",<.>/?\\|";
 
@@ -19,7 +16,7 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
     Terminal::Write("Memory contents beginning at 0x");
     Terminal::Write((uint32)ptr);
     Terminal::WriteLine(":");
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
 
     uint8 nybble = (uint8)((uint32)ptr & 0x0000000F);
     Terminal::Write("           ");
@@ -34,7 +31,7 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
 
         nybble = (nybble + 1) % 16;
     }
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
     Terminal::WriteLine("           ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿");
 
     uint32 print_chars_len = String::Len(readable_chars);
@@ -67,7 +64,7 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
                         Terminal::Write('.', VGA_FG_DARK_GREY);
                     }
                 }
-                Terminal::WriteLine("");
+                Terminal::WriteLine();
             }
 
             Terminal::Write("0x");
@@ -112,7 +109,7 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
             Terminal::Write('.', VGA_FG_DARK_GREY);
         }
     }
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
     Terminal::WriteLine("           ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ");
 }
 
@@ -146,7 +143,8 @@ void dbg_print_stack(uint32 num_items)
     // Track if the previous stack item was ebp
     bool prev_ebp = false;
 
-    for (uint32 i = 0; i < num_items && (uint32)val < (uint32)stack_top; i++)
+    uint32 stack_top = (uint32)Stack::GetTopAddress();
+    for (uint32 i = 0; i < num_items && (uint32)val < stack_top; i++)
     {
         uint32 i_ptr = (uint32)val;
         uint32 i_val = *val;
@@ -172,12 +170,12 @@ void dbg_print_stack(uint32 num_items)
             prev_ebp = false;
         }
 
-        Terminal::WriteLine("");
+        Terminal::WriteLine();
 
         val++;
     }
 
-    if ((uint32)val >= (uint32)stack_top)
+    if ((uint32)val >= stack_top)
     {
         Terminal::WriteLine("  <<TOP OF STACK>>");
     }

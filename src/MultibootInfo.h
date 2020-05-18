@@ -1,21 +1,6 @@
 #pragma once
 
-#include "elf.h"
-#include "types.h"
-
-#define STACK_SIZE 1024 * 64
-
-// Flags for boot_info.flags0
-#define BOOT_MEM 1 << 0
-#define BOOT_DEVICE 1 << 1
-#define BOOT_CMDLINE 1 << 2
-#define BOOT_SYMBOL_TABLE 1 << 4
-#define BOOT_ELF_SECTION_HEADER 1 << 5
-#define BOOT_MMAP 1 << 6
-#define BOOT_DRIVES 1 << 7
-
-// Flags for boot_info.flags1 (beginning offset 8 in 32-bit flags)
-#define BOOT_BOOTLOADER_NAME 1 << 1 // Flag 9 in 32-bit flags
+#include <Elf.h>
 
 typedef struct
 {
@@ -81,3 +66,17 @@ typedef struct
     uint32 config_table;
     char *boot_loader_name;
 } __attribute__((packed)) boot_information;
+
+class MultibootInfo
+{
+public:
+    static void Initialize(boot_information *lbootInfo);
+    static void PrintHeader();
+    static void PrintMmap();
+    static void PrintBootSectionHeader();
+    static void PrintElfSectionHeader();
+    static void PrintElfSymbols();
+
+private:
+    static boot_information *BootInfo;
+};

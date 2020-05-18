@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include <Types.h>
 
 #define VGA_COLOR_BLACK 0
 #define VGA_COLOR_BLUE 1
@@ -71,6 +71,7 @@ public:
     static void Write(string str);
     static void Write(string str, vga_color color);
 
+    static void WriteLine();
     static void WriteLine(string str);
 
     static void PageTop();

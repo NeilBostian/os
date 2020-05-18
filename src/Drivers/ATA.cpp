@@ -1,6 +1,6 @@
-#include "ATA.h"
-#include "serial.h"
-#include "terminal.h"
+#include <Drivers/ATA.h>
+#include <Serial.h>
+#include <Terminal.h>
 
 // See https://wiki.osdev.org/ATA_PIO_Mode#Registers
 #define PRIMARY_IO_0 0x1F0
@@ -94,7 +94,7 @@ void dump_regs_primary()
     Terminal::Write("ATA PIO Primary (");
     Terminal::Write((uint8)PRIMARY_IO_0);
     Terminal::Write(") Registers:");
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
 
     uint8 b;
 
@@ -103,21 +103,21 @@ void dump_regs_primary()
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
 
     Terminal::Write("Error    (+1) 0x");
     b = inb(PRIMARY_IO_1);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
 
     Terminal::Write("Sector   (+2) 0x");
     b = inb(PRIMARY_IO_2);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
 
     Terminal::Write("Sector # (+3) 0x");
     b = inb(PRIMARY_IO_3);
@@ -131,41 +131,41 @@ void dump_regs_primary()
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
 
     Terminal::Write("Cyl High (+5) 0x");
     b = inb(PRIMARY_IO_5);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
 
     Terminal::Write("Drive    (+6) 0x");
     b = inb(PRIMARY_IO_6);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
 
     Terminal::Write("Status   (+7) 0x");
     b = inb(PRIMARY_IO_7);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
 
     Terminal::Write("CTRL (CTRL+0) 0x");
     b = inb(PRIMARY_CMD_0);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
 
     Terminal::Write("Addr (CTRL+1) 0x");
     b = inb(PRIMARY_CMD_1);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
-    Terminal::WriteLine("");
-    Terminal::WriteLine("");
+    Terminal::WriteLine();
+    Terminal::WriteLine();
 }

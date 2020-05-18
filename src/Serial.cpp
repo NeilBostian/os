@@ -1,4 +1,4 @@
-#include "serial.h"
+#include <Serial.h>
 
 // See https://wiki.osdev.org/Inline_Assembly/Examples#I.2FO_access
 void outb(uint16 port, uint8 val)
