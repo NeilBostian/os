@@ -79,6 +79,9 @@ public:
     static void PageDown(uint32 offset);
 
 private:
+    static uint32 CursorRow;
+    static uint32 CursorCol;
+    static uint32 CurrentRowOffset;
     static void PutChar(char c, vga_color color);
     static void MapHistoryToBuffer(uint32 rowOffset);
 };

@@ -115,9 +115,9 @@ void print_boot_info()
             mmap_entry *entry = (mmap_entry *)offset;
 
             Terminal::Write("  ");
-            Terminal::Write((uint32)ct);
+            Terminal::Write((uint8)ct);
             Terminal::Write(" sz=");
-            Terminal::Write(entry->size);
+            Terminal::Write((uint8)entry->size);
             Terminal::Write(" base=");
             if ((uint32)entry->base_addr_upper != 0)
             {
@@ -127,7 +127,7 @@ void print_boot_info()
             Terminal::Write(" len=");
             Terminal::Write((uint32)entry->length);
             Terminal::Write(" type=");
-            Terminal::Write(entry->type);
+            Terminal::Write((uint8)entry->type);
             Terminal::Write(" end=");
             Terminal::Write((uint32)(entry->base_addr_lower + entry->length - 1));
 
@@ -222,57 +222,57 @@ void print_boot_info()
 
         Terminal::WriteLine("");
 
-        elf32_section_header shsymtab = boot_info->u.elf_info.header[7];
-        int numEntries = shsymtab.sh_size / shsymtab.sh_entsize;
-        elf32_symtab_entry *symtab = (elf32_symtab_entry *)shsymtab.sh_addr;
-        Terminal::Write("Found symtab at ");
-        Terminal::Write((uint32)symtab);
-        Terminal::WriteLine("");
+        // elf32_section_header shsymtab = boot_info->u.elf_info.header[7];
+        // int numEntries = shsymtab.sh_size / shsymtab.sh_entsize;
+        // elf32_symtab_entry *symtab = (elf32_symtab_entry *)shsymtab.sh_addr;
+        // Terminal::Write("Found symtab at ");
+        // Terminal::Write((uint32)symtab);
+        // Terminal::WriteLine("");
 
-        void* strtab = boot_info->u.elf_info.header[8].sh_addr;
+        // void* strtab = boot_info->u.elf_info.header[8].sh_addr;
 
-        for (int i = 0; i < numEntries; i++)
-        {
-            elf32_symtab_entry e = symtab[i];
-            elf32_section_header h = boot_info->u.elf_info.header[e.st_shndx];
-            string sym_name = (string)((uint32)strtab + e.st_name);
-            string sect_name = (string)((uint32)shstrtab + (uint32)h.name_offset);
+        // for (int i = 0; i < numEntries; i++)
+        // {
+        //     elf32_symtab_entry e = symtab[i];
+        //     elf32_section_header h = boot_info->u.elf_info.header[e.st_shndx];
+        //     string sym_name = (string)((uint32)strtab + e.st_name);
+        //     string sect_name = (string)((uint32)shstrtab + (uint32)h.name_offset);
 
-            Terminal::Write("Addr 0x");
-            Terminal::Write(e.st_value);
-            Terminal::Write(", name=");
-            //terminal_write_uint32(e.st_name);
-            if (e.st_name != 0)
-            {
-                Terminal::Write(sym_name);
-            }
-            Terminal::Write(", section=");
-            Terminal::Write(sect_name);
-            Terminal::Write(", type=");
+        //     Terminal::Write("Addr 0x");
+        //     Terminal::Write(e.st_value);
+        //     Terminal::Write(", name=");
+        //     //terminal_write_uint32(e.st_name);
+        //     if (e.st_name != 0)
+        //     {
+        //         Terminal::Write(sym_name);
+        //     }
+        //     Terminal::Write(", section=");
+        //     Terminal::Write(sect_name);
+        //     Terminal::Write(", type=");
 
-            uint8 type = e.st_info & 0x0F;
+        //     uint8 type = e.st_info & 0x0F;
 
-            switch (type)
-            {
-            case 0x00:
-                Terminal::Write("None");
-                break;
-            case 0x01:
-                Terminal::Write("Obj");
-                break;
-            case 0x02:
-                Terminal::Write("Func");
-                break;
-            case 0x03:
-                Terminal::Write("Sect");
-                break;
-            case 0x04:
-                Terminal::Write("File");
-                break;
-            }
+        //     switch (type)
+        //     {
+        //     case 0x00:
+        //         Terminal::Write("None");
+        //         break;
+        //     case 0x01:
+        //         Terminal::Write("Obj");
+        //         break;
+        //     case 0x02:
+        //         Terminal::Write("Func");
+        //         break;
+        //     case 0x03:
+        //         Terminal::Write("Sect");
+        //         break;
+        //     case 0x04:
+        //         Terminal::Write("File");
+        //         break;
+        //     }
 
-            Terminal::WriteLine("");
-        }
+        //     Terminal::WriteLine("");
+        // }
     }
 
     if (boot_info->flags0 & BOOT_DRIVES)
