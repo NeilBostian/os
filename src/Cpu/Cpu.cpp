@@ -1,8 +1,8 @@
-#include <Cpu.h>
+#include <Cpu/Cpu.h>
+#include <Cpu/Interrupts.h>
 #include <Debug.h>
 #include <Drivers/ATA.h>
 #include <Drivers/Serial.h>
-#include <Interrupts.h>
 #include <Terminal.h>
 #include <Types.h>
 

@@ -1,4 +1,4 @@
-#include <Interrupts.h>
+#include <Cpu/Interrupts.h>
 
 void *Interrupts::AllInterruptHandlers[NUM_INTERRUPTS];
 

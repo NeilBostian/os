@@ -1,5 +1,5 @@
 #include <Terminal.h>
-#include <Cpu.h>
+#include <Cpu/Cpu.h>
 
 // Number of characters in a row
 #define VGA_WIDTH 80

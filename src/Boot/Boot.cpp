@@ -1,6 +1,6 @@
-#include <Cpu.h>
-#include <MultibootInfo.h>
-#include <Stack.h>
+#include <Cpu/Cpu.h>
+#include <Cpu/Stack.h>
+#include <Drivers/MultibootInfo.h>
 #include <Terminal.h>
 #include <Types.h>
 

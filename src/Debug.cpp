@@ -1,5 +1,5 @@
+#include <Cpu/Stack.h>
 #include <Debug.h>
-#include <Stack.h>
 #include <Terminal.h>
 
 // Returns a pointer to the next address that will be executed after this function is called.

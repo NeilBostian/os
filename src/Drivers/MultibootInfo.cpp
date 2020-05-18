@@ -1,7 +1,7 @@
+#include <Cpu/Stack.h>
 #include <Debug.h>
-#include <Elf.h>
-#include <MultibootInfo.h>
-#include <Stack.h>
+#include <Drivers/Elf.h>
+#include <Drivers/MultibootInfo.h>
 #include <Terminal.h>
 #include <Types.h>
 

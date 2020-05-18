@@ -23,7 +23,7 @@ link: prep $(CXX_OBJ_FILES) $(AS_OBJ_FILES)
 		$(CXX_OBJ_FILES) \
 		$(AS_OBJ_FILES) \
 		-o bin/iso/boot/kernel.bin \
-		-T ./src/linker.ld \
+		-T ./src/Boot/linker.ld \
 		-e start \
 		-ffreestanding -nostdlib
 
@@ -34,7 +34,7 @@ prep:
 
 build_iso: link
 	# Move our grub config file to the dir for building our iso
-	cp ./src/grub.cfg ./bin/iso/boot/grub/grub.cfg
+	cp ./src/Boot/grub.cfg ./bin/iso/boot/grub/grub.cfg
 
 	# Create iso
 	grub-mkrescue \
