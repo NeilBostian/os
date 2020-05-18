@@ -57,29 +57,28 @@
 
 typedef uint8 vga_color;
 
-typedef struct
+class Terminal
 {
-    char value;
-    vga_color color;
-} __attribute__((packed)) terminal_char;
+public:
+    static void Clear();
 
-typedef struct
-{
-    char val[9];
-} uint32_str;
+    static void WriteBin(uint8 x);
 
-int32 strlen(const char *str);
-void terminal_clear();
-void terminal_write(const char *str);
-void terminal_write_uint8(uint8 x);
-void terminal_write_uint8bin(uint8 x);
-void terminal_write_uint32(uint32 x);
-void terminal_writeline(const char *str);
-void terminal_putchar(char c, vga_color color);
-void terminal_pagetop();
-void terminal_pageup(uint32 offset);
-void terminal_pagebottom();
-void terminal_pagedown(uint32 offset);
-void uint8_to_str(uint8 x, char *res);
-void uint8_to_strbin(uint8 x, char *res);
-void uint32_to_str(uint32 x, char *res);
+    static void Write(char c);
+    static void Write(char c, vga_color color);
+    static void Write(uint8 x);
+    static void Write(uint32 x);
+    static void Write(string str);
+    static void Write(string str, vga_color color);
+
+    static void WriteLine(string str);
+
+    static void PageTop();
+    static void PageUp(uint32 offset);
+    static void PageBottom();
+    static void PageDown(uint32 offset);
+
+private:
+    static void PutChar(char c, vga_color color);
+    static void MapHistoryToBuffer(uint32 rowOffset);
+};

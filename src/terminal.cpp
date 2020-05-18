@@ -16,23 +16,19 @@
 // Upper bound of current_row_offset based on HIST_SIZE / VGA_HEIGHT
 #define MAX_ROW_OFFSET MAX_ROW - VGA_HEIGHT
 
+typedef struct
+{
+    char value;
+    vga_color color;
+} __attribute__((packed)) terminal_char;
+
 terminal_char *terminal_buffer = (terminal_char *)0xB8000;
 static uint32 cursor_row = 0;
 static uint32 cursor_col = 0;
 static terminal_char terminal_history[HIST_SIZE];
 static int current_row_offset = 0;
 
-static void map_history_to_buffer(uint32 row_offset);
-
-int32 strlen(string str)
-{
-    int32 ret = 0;
-    while (str[ret] != 0)
-        ret++;
-    return ret;
-}
-
-void terminal_clear()
+void Terminal::Clear()
 {
     cursor_row = 0;
     cursor_col = 0;
@@ -60,7 +56,7 @@ void terminal_clear()
     }
 
     string msg = " Scroll (arrow u/d = 1 line, pg up/down = 10 lines, home/end)";
-    uint32 len = strlen(msg);
+    uint32 len = String::Len(msg);
     for (uint32 ind = 0; ind < len; ind++)
     {
         uint32 o = lastrow_offset + ind;
@@ -68,56 +64,70 @@ void terminal_clear()
     }
 }
 
-void terminal_write(string str)
+void Terminal::Write(string str)
+{
+    Terminal::Write(str, VGA_COLOR_DEFAULT);
+}
+void Terminal::Write(string str, vga_color color)
 {
     int index = 0,
-        len = strlen(str);
+        len = String::Len(str);
 
     for (index; index < len; index++)
     {
-        terminal_putchar(str[index], VGA_COLOR_DEFAULT);
+        Terminal::PutChar(str[index], color);
     }
 
-    map_history_to_buffer(current_row_offset);
+    Terminal::MapHistoryToBuffer(current_row_offset);
 }
 
-void terminal_write_uint8(uint8 x)
+void Terminal::Write(char c)
+{
+    Terminal::PutChar(c, VGA_COLOR_DEFAULT);
+}
+
+void Terminal::Write(char c, vga_color color)
+{
+    Terminal::PutChar(c, color);
+}
+
+void Terminal::Write(uint8 x)
 {
     char str[3];
-    uint8_to_str(x, str);
-    terminal_write(str);
+    String::ConvertToHex(x, str);
+    Terminal::Write(str);
 }
 
-void terminal_write_uint8bin(uint8 x)
+void Terminal::WriteBin(uint8 x)
 {
     char str[9];
-    uint8_to_strbin(x, str);
-    terminal_write(str);
+    String::ConvertToBin(x, str);
+    Terminal::Write(str);
 }
 
-void terminal_write_uint32(uint32 x)
+void Terminal::Write(uint32 x)
 {
     char str[9];
-    uint32_to_str(x, str);
-    terminal_write(str);
+    String::ConvertToHex(x, str);
+    Terminal::Write(str);
 }
 
-void terminal_writeline(string str)
+void Terminal::WriteLine(string str)
 {
     int index = 0,
-        len = strlen(str);
+        len = String::Len(str);
 
     for (index; index < len; index++)
     {
-        terminal_putchar(str[index], VGA_COLOR_DEFAULT);
+        Terminal::PutChar(str[index], VGA_COLOR_DEFAULT);
     }
 
-    terminal_putchar('\n', VGA_COLOR_DEFAULT);
+    Terminal::PutChar('\n', VGA_COLOR_DEFAULT);
 
-    map_history_to_buffer(current_row_offset);
+    Terminal::MapHistoryToBuffer(current_row_offset);
 }
 
-void terminal_putchar(char c, vga_color color)
+void Terminal::PutChar(char c, vga_color color)
 {
     int loc;
 
@@ -130,7 +140,7 @@ void terminal_putchar(char c, vga_color color)
         break;
 
     case '\t':
-        terminal_write("    ");
+        Terminal::Write("    ");
         break;
 
     default:
@@ -163,11 +173,12 @@ void terminal_putchar(char c, vga_color color)
     }
 }
 
-void terminal_pagetop()
+void Terminal::PageTop()
 {
-    terminal_pageup(MAX_ROW_OFFSET);
+    Terminal::PageUp(MAX_ROW_OFFSET);
 }
-void terminal_pageup(uint32 offset)
+
+void Terminal::PageUp(uint32 offset)
 {
     current_row_offset -= offset;
 
@@ -176,14 +187,15 @@ void terminal_pageup(uint32 offset)
         current_row_offset = 0;
     }
 
-    map_history_to_buffer(current_row_offset);
+    Terminal::MapHistoryToBuffer(current_row_offset);
 }
 
-void terminal_pagebottom()
+void Terminal::PageBottom()
 {
-    terminal_pagedown(MAX_ROW_OFFSET);
+    Terminal::PageDown(MAX_ROW_OFFSET);
 }
-void terminal_pagedown(uint32 offset)
+
+void Terminal::PageDown(uint32 offset)
 {
     uint32 max_offset;
 
@@ -212,12 +224,12 @@ void terminal_pagedown(uint32 offset)
         current_row_offset = max_offset;
     }
 
-    map_history_to_buffer(current_row_offset);
+    Terminal::MapHistoryToBuffer(current_row_offset);
 }
 
-void map_history_to_buffer(uint32 row_offset)
+void Terminal::MapHistoryToBuffer(uint32 rowOffset)
 {
-    uint32 hist_offset = row_offset * VGA_WIDTH;
+    uint32 hist_offset = rowOffset * VGA_WIDTH;
 
     for (uint32 row = 0; row < VGA_HEIGHT; row++)
     {
@@ -228,49 +240,4 @@ void map_history_to_buffer(uint32 row_offset)
             terminal_buffer[offset].color = terminal_history[hist_offset + offset].color;
         }
     }
-}
-
-void uint8_to_str(uint8 x, char *res)
-{
-    char as32[9];
-    uint32_to_str((uint32)x, as32);
-    res[0] = as32[6];
-    res[1] = as32[7];
-    res[2] = '\0';
-}
-
-void uint8_to_strbin(uint8 x, char *res)
-{
-    int i = 0;
-    for (; i < 8; i++)
-    {
-        uint8 mask = 1 << i;
-        if (x & mask)
-        {
-            res[7 - i] = '1';
-        }
-        else
-        {
-            res[7 - i] = '0';
-        }
-    }
-    res[8] = '\0';
-}
-
-void uint32_to_str(uint32 x, char *res)
-{
-    int i = 0;
-    for (; i < 8; i++)
-    {
-        char nybble = (x & (0xF << 4 * (8 - i - 1))) >> 4 * (8 - i - 1);
-        if (nybble <= 9)
-        {
-            res[i] = '0' + nybble;
-        }
-        else
-        {
-            res[i] = 'A' + nybble - 10;
-        }
-    }
-    res[8] = '\0';
 }

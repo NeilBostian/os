@@ -16,35 +16,35 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
 
     uint8 *val = (uint8 *)ptr;
 
-    terminal_write("Memory contents beginning at 0x");
-    terminal_write_uint32((uint32)ptr);
-    terminal_writeline(":");
-    terminal_writeline("");
+    Terminal::Write("Memory contents beginning at 0x");
+    Terminal::Write((uint32)ptr);
+    Terminal::WriteLine(":");
+    Terminal::WriteLine("");
 
     uint8 nybble = (uint8)((uint32)ptr & 0x0000000F);
-    terminal_write("           ");
+    Terminal::Write("           ");
 
     char chr[3];
     for (int i = 0; i < 16; i++)
     {
-        terminal_write(" ");
-        uint8_to_str(nybble, chr);
+        Terminal::Write(" ");
+        String::ConvertToHex(nybble, chr);
         chr[0] = 'x';
-        terminal_write(chr);
+        Terminal::Write(chr);
 
         nybble = (nybble + 1) % 16;
     }
-    terminal_writeline("");
-    terminal_writeline("           ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿");
+    Terminal::WriteLine("");
+    Terminal::WriteLine("           ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿");
 
-    uint32 print_chars_len = strlen(readable_chars);
+    uint32 print_chars_len = String::Len(readable_chars);
     for (int i = 0; i < num_bytes; i++)
     {
         if (i % 16 == 0)
         {
             if (i != 0)
             {
-                terminal_write("³ ");
+                Terminal::Write("³ ");
 
                 for (int j = i - 16; j < i; j++)
                 {
@@ -56,7 +56,7 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
                     {
                         if (readable_chars[k] == c)
                         {
-                            terminal_putchar(c, VGA_FG_LIGHT_GREY);
+                            Terminal::Write(c, VGA_FG_LIGHT_GREY);
                             did_print = true;
                             break;
                         }
@@ -64,32 +64,32 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
 
                     if (!did_print)
                     {
-                        terminal_putchar('.', VGA_FG_DARK_GREY);
+                        Terminal::Write('.', VGA_FG_DARK_GREY);
                     }
                 }
-                terminal_writeline("");
+                Terminal::WriteLine("");
             }
 
-            terminal_write("0x");
-            terminal_write_uint32((uint32)val);
-            terminal_write(" ³");
+            Terminal::Write("0x");
+            Terminal::Write((uint32)val);
+            Terminal::Write(" ³");
         }
         else
         {
-            terminal_write(" ");
+            Terminal::Write(" ");
         }
 
         uint8 x = *val;
-        uint8_to_str(x, chr);
+        String::ConvertToHex(x, chr);
         vga_color color = (x == 0 || x == 0xFF ? VGA_FG_DARK_GREY : VGA_FG_WHITE);
 
-        terminal_putchar(chr[0], color);
-        terminal_putchar(chr[1], color);
+        Terminal::Write(chr[0], color);
+        Terminal::Write(chr[1], color);
 
         val++;
     }
 
-    terminal_write("³ ");
+    Terminal::Write("³ ");
 
     for (int j = num_bytes - 16; j < num_bytes; j++)
     {
@@ -101,7 +101,7 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
         {
             if (readable_chars[k] == c)
             {
-                terminal_putchar(c, VGA_FG_LIGHT_GREY);
+                Terminal::Write(c, VGA_FG_LIGHT_GREY);
                 did_print = true;
                 break;
             }
@@ -109,11 +109,11 @@ void dbg_print_memory(void *ptr, uint32 num_bytes)
 
         if (!did_print)
         {
-            terminal_putchar('.', VGA_FG_DARK_GREY);
+            Terminal::Write('.', VGA_FG_DARK_GREY);
         }
     }
-    terminal_writeline("");
-    terminal_writeline("           ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ");
+    Terminal::WriteLine("");
+    Terminal::WriteLine("           ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ");
 }
 
 void dbg_print_stack(uint32 num_items)
@@ -139,9 +139,9 @@ void dbg_print_stack(uint32 num_items)
     ebp = *val;
     val += 3;
 
-    terminal_write("Stack contents beginning at 0x");
-    terminal_write_uint32((uint32)val);
-    terminal_writeline(":");
+    Terminal::Write("Stack contents beginning at 0x");
+    Terminal::Write((uint32)val);
+    Terminal::WriteLine(":");
 
     // Track if the previous stack item was ebp
     bool prev_ebp = false;
@@ -151,19 +151,19 @@ void dbg_print_stack(uint32 num_items)
         uint32 i_ptr = (uint32)val;
         uint32 i_val = *val;
 
-        terminal_write("  ADDR 0x");
-        terminal_write_uint32(i_ptr);
-        terminal_write(": 0x");
-        terminal_write_uint32(i_val);
+        Terminal::Write("  ADDR 0x");
+        Terminal::Write(i_ptr);
+        Terminal::Write(": 0x");
+        Terminal::Write(i_val);
 
         if (prev_ebp)
         {
-            terminal_write(" <-- RET ADDRESS");
+            Terminal::Write(" <-- RET ADDRESS");
         }
 
         if (i_ptr == ebp)
         {
-            terminal_write(" <-- EBP");
+            Terminal::Write(" <-- EBP");
             ebp = i_val;
             prev_ebp = true;
         }
@@ -172,13 +172,13 @@ void dbg_print_stack(uint32 num_items)
             prev_ebp = false;
         }
 
-        terminal_writeline("");
+        Terminal::WriteLine("");
 
         val++;
     }
 
     if ((uint32)val >= (uint32)stack_top)
     {
-        terminal_writeline("  <<TOP OF STACK>>");
+        Terminal::WriteLine("  <<TOP OF STACK>>");
     }
 }

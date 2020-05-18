@@ -160,23 +160,23 @@ extern "C" void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, 
 
         switch (scan_code)
         {
-        case 0x47:
-            terminal_pagetop();
+        case 0x47: // Home
+            Terminal::PageTop();
             break;
-        case 0x48:
-            terminal_pageup(1);
+        case 0x48: // Arrow up
+            Terminal::PageUp(1);
             break;
-        case 0x49:
-            terminal_pageup(10);
+        case 0x49: // Page up
+            Terminal::PageUp(10);
             break;
-        case 0x4F:
-            terminal_pagebottom();
+        case 0x4F: // End
+            Terminal::PageBottom();
             break;
-        case 0x50:
-            terminal_pagedown(1);
+        case 0x50: // Arrow down
+            Terminal::PageDown(1);
             break;
-        case 0x51:
-            terminal_pagedown(10);
+        case 0x51: // Page down
+            Terminal::PageDown(10);
             break;
         }
     }
@@ -187,14 +187,14 @@ extern "C" void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, 
     }
     else if (isr == ISR_ATA_PRIMARY)
     {
-        terminal_writeline("Received ATA Primary Interrupt");
+        Terminal::WriteLine("Received ATA Primary Interrupt");
         ata_handle_irq();
     }
     else
     {
-        terminal_write("Received interrupt 0x");
-        terminal_write_uint8((uint8)isr);
-        terminal_writeline(", no handler configured for this ISR.");
+        Terminal::Write("Received interrupt 0x");
+        Terminal::Write((uint8)isr);
+        Terminal::WriteLine(", no handler configured for this ISR.");
     }
 
     if (isr >= PIC_ISR_OFFSET && isr < PIC_ISR_OFFSET + 16)

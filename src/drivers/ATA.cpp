@@ -91,81 +91,81 @@ void ata_handle_irq()
 
 void dump_regs_primary()
 {
-    terminal_write("ATA PIO Primary (");
-    terminal_write_uint8((uint8)PRIMARY_IO_0);
-    terminal_write(") Registers:");
-    terminal_writeline("");
+    Terminal::Write("ATA PIO Primary (");
+    Terminal::Write((uint8)PRIMARY_IO_0);
+    Terminal::Write(") Registers:");
+    Terminal::WriteLine("");
 
     uint8 b;
 
-    terminal_write("Data     (+0) 0x");
+    Terminal::Write("Data     (+0) 0x");
     b = inb(PRIMARY_IO_0);
-    terminal_write_uint8(b);
-    terminal_write(", 0b");
-    terminal_write_uint8bin(b);
-    terminal_writeline("");
+    Terminal::Write(b);
+    Terminal::Write(", 0b");
+    Terminal::WriteBin(b);
+    Terminal::WriteLine("");
 
-    terminal_write("Error    (+1) 0x");
+    Terminal::Write("Error    (+1) 0x");
     b = inb(PRIMARY_IO_1);
-    terminal_write_uint8(b);
-    terminal_write(", 0b");
-    terminal_write_uint8bin(b);
-    terminal_writeline("");
+    Terminal::Write(b);
+    Terminal::Write(", 0b");
+    Terminal::WriteBin(b);
+    Terminal::WriteLine("");
 
-    terminal_write("Sector   (+2) 0x");
+    Terminal::Write("Sector   (+2) 0x");
     b = inb(PRIMARY_IO_2);
-    terminal_write_uint8(b);
-    terminal_write(", 0b");
-    terminal_write_uint8bin(b);
-    terminal_writeline("");
+    Terminal::Write(b);
+    Terminal::Write(", 0b");
+    Terminal::WriteBin(b);
+    Terminal::WriteLine("");
 
-    terminal_write("Sector # (+3) 0x");
+    Terminal::Write("Sector # (+3) 0x");
     b = inb(PRIMARY_IO_3);
-    terminal_write_uint8(b);
-    terminal_write(", 0b");
-    terminal_write_uint8bin(b);
-    terminal_writeline("");
+    Terminal::Write(b);
+    Terminal::Write(", 0b");
+    Terminal::WriteBin(b);
+    Terminal::Write("");
 
-    terminal_write("Cyl Low  (+4) 0x");
+    Terminal::Write("Cyl Low  (+4) 0x");
     b = inb(PRIMARY_IO_4);
-    terminal_write_uint8(b);
-    terminal_write(", 0b");
-    terminal_write_uint8bin(b);
-    terminal_writeline("");
+    Terminal::Write(b);
+    Terminal::Write(", 0b");
+    Terminal::WriteBin(b);
+    Terminal::WriteLine("");
 
-    terminal_write("Cyl High (+5) 0x");
+    Terminal::Write("Cyl High (+5) 0x");
     b = inb(PRIMARY_IO_5);
-    terminal_write_uint8(b);
-    terminal_write(", 0b");
-    terminal_write_uint8bin(b);
-    terminal_writeline("");
+    Terminal::Write(b);
+    Terminal::Write(", 0b");
+    Terminal::WriteBin(b);
+    Terminal::WriteLine("");
 
-    terminal_write("Drive    (+6) 0x");
+    Terminal::Write("Drive    (+6) 0x");
     b = inb(PRIMARY_IO_6);
-    terminal_write_uint8(b);
-    terminal_write(", 0b");
-    terminal_write_uint8bin(b);
-    terminal_writeline("");
+    Terminal::Write(b);
+    Terminal::Write(", 0b");
+    Terminal::WriteBin(b);
+    Terminal::WriteLine("");
 
-    terminal_write("Status   (+7) 0x");
+    Terminal::Write("Status   (+7) 0x");
     b = inb(PRIMARY_IO_7);
-    terminal_write_uint8(b);
-    terminal_write(", 0b");
-    terminal_write_uint8bin(b);
-    terminal_writeline("");
+    Terminal::Write(b);
+    Terminal::Write(", 0b");
+    Terminal::WriteBin(b);
+    Terminal::WriteLine("");
 
-    terminal_write("CTRL (CTRL+0) 0x");
+    Terminal::Write("CTRL (CTRL+0) 0x");
     b = inb(PRIMARY_CMD_0);
-    terminal_write_uint8(b);
-    terminal_write(", 0b");
-    terminal_write_uint8bin(b);
-    terminal_writeline("");
+    Terminal::Write(b);
+    Terminal::Write(", 0b");
+    Terminal::WriteBin(b);
+    Terminal::WriteLine("");
 
-    terminal_write("Addr (CTRL+1) 0x");
+    Terminal::Write("Addr (CTRL+1) 0x");
     b = inb(PRIMARY_CMD_1);
-    terminal_write_uint8(b);
-    terminal_write(", 0b");
-    terminal_write_uint8bin(b);
-    terminal_writeline("");
-    terminal_writeline("");
+    Terminal::Write(b);
+    Terminal::Write(", 0b");
+    Terminal::WriteBin(b);
+    Terminal::WriteLine("");
+    Terminal::WriteLine("");
 }

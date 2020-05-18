@@ -23,7 +23,7 @@ extern "C" __attribute__((noreturn)) void entry(boot_information *lboot_info)
     asm("mov %ebp, %esp");
 
     // Real code begins here
-    terminal_clear();
+    Terminal::Clear();
     create_gdt();
     create_idt();
 
@@ -45,66 +45,66 @@ extern "C" __attribute__((noreturn)) void entry(boot_information *lboot_info)
 
 void print_boot_info()
 {
-    terminal_writeline("boot_info");
-    terminal_write(" flags ");
-    terminal_write_uint8bin(boot_info->flags3);
-    terminal_write_uint8bin(boot_info->flags2);
-    terminal_write_uint8bin(boot_info->flags1);
-    terminal_write_uint8bin(boot_info->flags0);
-    terminal_write("\n");
-    terminal_writeline("       |      |       |       |       |");
-    terminal_writeline("       31     24      16      8       0");
-    terminal_write(" stack_top:   ");
-    terminal_write_uint32((uint32)stack_top);
-    terminal_write("\n");
-    terminal_write(" stack_bot:   ");
-    terminal_write_uint32((uint32)stack_bottom);
-    terminal_write("\n\n");
+    Terminal::WriteLine("boot_info");
+    Terminal::Write(" flags ");
+    Terminal::WriteBin(boot_info->flags3);
+    Terminal::WriteBin(boot_info->flags2);
+    Terminal::WriteBin(boot_info->flags1);
+    Terminal::WriteBin(boot_info->flags0);
+    Terminal::Write("\n");
+    Terminal::WriteLine("       |      |       |       |       |");
+    Terminal::WriteLine("       31     24      16      8       0");
+    Terminal::Write(" stack_top:   ");
+    Terminal::Write((uint32)stack_top);
+    Terminal::Write("\n");
+    Terminal::Write(" stack_bot:   ");
+    Terminal::Write((uint32)stack_bottom);
+    Terminal::Write("\n\n");
 
     if (boot_info->flags0 & BOOT_MEM)
     {
-        terminal_write(" mem_lower:   ");
-        terminal_write_uint32(1024 * boot_info->mem_lower);
-        terminal_write("\n");
+        Terminal::Write(" mem_lower:   ");
+        Terminal::Write(1024 * boot_info->mem_lower);
+        Terminal::Write("\n");
 
-        terminal_write(" mem_upper:   ");
-        terminal_write_uint32(1024 * boot_info->mem_upper);
-        terminal_write("\n");
+        Terminal::Write(" mem_upper:   ");
+        Terminal::Write(1024 * boot_info->mem_upper);
+        Terminal::Write("\n");
     }
 
     if (boot_info->flags0 & BOOT_DEVICE)
     {
-        terminal_write(" boot_device: ");
-        terminal_write_uint32(boot_info->boot_device);
-        terminal_write("\n");
+        Terminal::Write(" boot_device: ");
+        Terminal::Write(boot_info->boot_device);
+        Terminal::Write("\n");
     }
 
     if (boot_info->flags0 & BOOT_CMDLINE)
     {
-        terminal_write(" cmd: \"");
-        terminal_write(boot_info->cmdline);
-        terminal_write("\"\n");
+        Terminal::Write(" cmd: \"");
+        Terminal::Write(boot_info->cmdline);
+        Terminal::Write("\"\n");
     }
 
     if (boot_info->flags1 & BOOT_BOOTLOADER_NAME)
     {
-        terminal_write(" bootloader: \"");
-        terminal_write(boot_info->boot_loader_name);
-        terminal_write("\"\n");
+        Terminal::Write(" bootloader: \"");
+        Terminal::Write(boot_info->boot_loader_name);
+        Terminal::Write("\"\n");
     }
 
     if (boot_info->flags0 & BOOT_MMAP)
     {
-        terminal_writeline("");
-        terminal_writeline("Detected mmap struct");
+        Terminal::WriteLine("");
+        Terminal::WriteLine("Detected mmap struct");
 
-        terminal_write(" mmap_addr:   ");
-        terminal_write_uint32((uint32)boot_info->mmap_addr);
-        terminal_write("\n");
+        Terminal::Write(" mmap_addr:   ");
+        Terminal::Write((uint32)boot_info->mmap_addr);
+        Terminal::Write("\n");
 
-        terminal_write(" mmap_length: ");
-        terminal_write_uint32(boot_info->mmap_length);
-        terminal_write("\n");
+        Terminal::Write(" mmap_length: ");
+        Terminal::Write(boot_info->mmap_length);
+        Terminal::Write("\n");
 
         uint16 ct = 0;
         uint32 max_addr = (uint32)boot_info->mmap_addr + boot_info->mmap_length;
@@ -114,34 +114,34 @@ void print_boot_info()
         {
             mmap_entry *entry = (mmap_entry *)offset;
 
-            terminal_write("  ");
-            terminal_write_uint8(ct);
-            terminal_write(" sz=");
-            terminal_write_uint8(entry->size);
-            terminal_write(" base=");
+            Terminal::Write("  ");
+            Terminal::Write((uint32)ct);
+            Terminal::Write(" sz=");
+            Terminal::Write(entry->size);
+            Terminal::Write(" base=");
             if ((uint32)entry->base_addr_upper != 0)
             {
-                terminal_write_uint32(entry->base_addr_upper);
+                Terminal::Write(entry->base_addr_upper);
             }
-            terminal_write_uint32(entry->base_addr_lower);
-            terminal_write(" len=");
-            terminal_write_uint32(entry->length);
-            terminal_write(" type=");
-            terminal_write_uint8(entry->type);
-            terminal_write(" end=");
-            terminal_write_uint32(entry->base_addr_lower + entry->length - 1);
+            Terminal::Write(entry->base_addr_lower);
+            Terminal::Write(" len=");
+            Terminal::Write((uint32)entry->length);
+            Terminal::Write(" type=");
+            Terminal::Write(entry->type);
+            Terminal::Write(" end=");
+            Terminal::Write((uint32)(entry->base_addr_lower + entry->length - 1));
 
             if (prev != 0)
             {
                 uint32 prev_end = prev->base_addr_lower + prev->length;
                 if (prev_end != entry->base_addr_lower)
                 {
-                    terminal_write(" gap=");
-                    terminal_write_uint32(entry->base_addr_lower - prev_end);
+                    Terminal::Write(" gap=");
+                    Terminal::Write(entry->base_addr_lower - prev_end);
                 }
             }
 
-            terminal_write("\n");
+            Terminal::Write("\n");
 
             offset += entry->size + 4;
 
@@ -151,50 +151,50 @@ void print_boot_info()
 
     if (boot_info->flags0 & BOOT_SYMBOL_TABLE)
     {
-        terminal_writeline("");
-        terminal_writeline("Detected symbol table:");
+        Terminal::WriteLine("");
+        Terminal::WriteLine("Detected symbol table:");
 
-        terminal_write("Address:  0x");
-        terminal_write_uint32(boot_info->u.sym_tab.addr);
-        terminal_writeline("");
+        Terminal::Write("Address:  0x");
+        Terminal::Write(boot_info->u.sym_tab.addr);
+        Terminal::WriteLine("");
 
-        terminal_write("str_size: 0x");
-        terminal_write_uint32(boot_info->u.sym_tab.str_size);
-        terminal_writeline("");
+        Terminal::Write("str_size: 0x");
+        Terminal::Write(boot_info->u.sym_tab.str_size);
+        Terminal::WriteLine("");
 
-        terminal_write("tab_size: 0x");
-        terminal_write_uint32(boot_info->u.sym_tab.tab_size);
-        terminal_writeline("");
+        Terminal::Write("tab_size: 0x");
+        Terminal::Write(boot_info->u.sym_tab.tab_size);
+        Terminal::WriteLine("");
 
         dbg_print_memory((void *)boot_info->u.sym_tab.addr, 256);
     }
 
     if (boot_info->flags0 & BOOT_ELF_SECTION_HEADER)
     {
-        terminal_writeline("");
-        terminal_writeline("Detected ELF header table:");
+        Terminal::WriteLine("");
+        Terminal::WriteLine("Detected ELF header table:");
 
-        terminal_write("Address:  0x");
-        terminal_write_uint32((uint32)boot_info->u.elf_info.header);
-        terminal_writeline("");
+        Terminal::Write("Address:  0x");
+        Terminal::Write((uint32)boot_info->u.elf_info.header);
+        Terminal::WriteLine("");
 
-        terminal_write("Num:      0x");
-        terminal_write_uint32(boot_info->u.elf_info.entry_count);
-        terminal_writeline("");
+        Terminal::Write("Num:      0x");
+        Terminal::Write(boot_info->u.elf_info.entry_count);
+        Terminal::WriteLine("");
 
-        terminal_write("Size:     0x");
-        terminal_write_uint32(boot_info->u.elf_info.entry_size);
-        terminal_writeline("");
+        Terminal::Write("Size:     0x");
+        Terminal::Write(boot_info->u.elf_info.entry_size);
+        Terminal::WriteLine("");
 
-        terminal_write("Sections: 0x");
-        terminal_write_uint32(boot_info->u.elf_info.section_header_index);
-        terminal_writeline("");
+        Terminal::Write("Sections: 0x");
+        Terminal::Write(boot_info->u.elf_info.section_header_index);
+        Terminal::WriteLine("");
 
         elf32_section_header shstrtab_sec = boot_info->u.elf_info.header[boot_info->u.elf_info.section_header_index];
         void *shstrtab = shstrtab_sec.sh_addr;
-        terminal_write("Found strtab at ");
-        terminal_write_uint32((uint32)shstrtab);
-        terminal_writeline("");
+        Terminal::Write("Found strtab at ");
+        Terminal::Write((uint32)shstrtab);
+        Terminal::WriteLine("");
 
         elf32_section_header *ptr = boot_info->u.elf_info.header;
         for (int i = 0; i < boot_info->u.elf_info.entry_count; i++)
@@ -202,32 +202,32 @@ void print_boot_info()
             if (ptr->sh_type != SHT_NULL)
             {
                 char *name = (char *)((uint32)shstrtab + (uint32)ptr->name_offset);
-                terminal_write("ind=");
-                terminal_write_uint8((uint8)i);
-                terminal_write(", type=");
-                terminal_write_uint8(ptr->sh_type);
-                terminal_write(", addr=");
-                terminal_write_uint32((uint32)ptr->sh_addr);
-                terminal_write(", name=\"");
-                terminal_write(name);
-                terminal_write(", e_sz=");
-                terminal_write_uint8(ptr->sh_entsize);
-                terminal_write(", sh_sz=");
-                terminal_write_uint32(ptr->sh_size);
-                terminal_write("\"\n");
+                Terminal::Write("ind=");
+                Terminal::Write((uint8)i);
+                Terminal::Write(", type=");
+                Terminal::Write((uint8)ptr->sh_type);
+                Terminal::Write(", addr=");
+                Terminal::Write((uint32)ptr->sh_addr);
+                Terminal::Write(", name=\"");
+                Terminal::Write(name);
+                Terminal::Write(", e_sz=");
+                Terminal::Write(ptr->sh_entsize);
+                Terminal::Write(", sh_sz=");
+                Terminal::Write(ptr->sh_size);
+                Terminal::Write("\"\n");
             }
 
             ptr++;
         }
 
-        terminal_writeline("");
+        Terminal::WriteLine("");
 
         elf32_section_header shsymtab = boot_info->u.elf_info.header[7];
         int numEntries = shsymtab.sh_size / shsymtab.sh_entsize;
         elf32_symtab_entry *symtab = (elf32_symtab_entry *)shsymtab.sh_addr;
-        terminal_write("Found symtab at ");
-        terminal_write_uint32((uint32)symtab);
-        terminal_writeline("");
+        Terminal::Write("Found symtab at ");
+        Terminal::Write((uint32)symtab);
+        Terminal::WriteLine("");
 
         void* strtab = boot_info->u.elf_info.header[8].sh_addr;
 
@@ -238,52 +238,52 @@ void print_boot_info()
             string sym_name = (string)((uint32)strtab + e.st_name);
             string sect_name = (string)((uint32)shstrtab + (uint32)h.name_offset);
 
-            terminal_write("Addr 0x");
-            terminal_write_uint32(e.st_value);
-            terminal_write(", name=");
+            Terminal::Write("Addr 0x");
+            Terminal::Write(e.st_value);
+            Terminal::Write(", name=");
             //terminal_write_uint32(e.st_name);
             if (e.st_name != 0)
             {
-                terminal_write(sym_name);
+                Terminal::Write(sym_name);
             }
-            terminal_write(", section=");
-            terminal_write(sect_name);
-            terminal_write(", type=");
+            Terminal::Write(", section=");
+            Terminal::Write(sect_name);
+            Terminal::Write(", type=");
 
             uint8 type = e.st_info & 0x0F;
 
             switch (type)
             {
             case 0x00:
-                terminal_write("None");
+                Terminal::Write("None");
                 break;
             case 0x01:
-                terminal_write("Obj");
+                Terminal::Write("Obj");
                 break;
             case 0x02:
-                terminal_write("Func");
+                Terminal::Write("Func");
                 break;
             case 0x03:
-                terminal_write("Sect");
+                Terminal::Write("Sect");
                 break;
             case 0x04:
-                terminal_write("File");
+                Terminal::Write("File");
                 break;
             }
 
-            terminal_writeline("");
+            Terminal::WriteLine("");
         }
     }
 
     if (boot_info->flags0 & BOOT_DRIVES)
     {
-        terminal_writeline("Dectected drives");
-        terminal_write(" drives_addr: ");
-        terminal_write_uint32((uint32)boot_info->drives_addr);
-        terminal_write("\n");
+        Terminal::WriteLine("Dectected drives");
+        Terminal::Write(" drives_addr: ");
+        Terminal::Write((uint32)boot_info->drives_addr);
+        Terminal::Write("\n");
 
-        terminal_write(" drives_len:  ");
-        terminal_write_uint32(boot_info->drives_length);
-        terminal_write("\n");
+        Terminal::Write(" drives_len:  ");
+        Terminal::Write(boot_info->drives_length);
+        Terminal::Write("\n");
     }
 }

@@ -15,3 +15,22 @@ typedef signed long long int64;
 
 // String type
 typedef const char *string;
+
+class String
+{
+public:
+    // Returns length of a string
+    static uint32 Len(string str);
+
+    // Converts `x` to a binary string, placing the result in *res.
+    // *res should be a char[9].
+    static void ConvertToBin(uint8 x, char *res);
+
+    // Converts `x` to a hex string, placing the result in *res.
+    // *res should be a char[3].
+    static void ConvertToHex(uint8 x, char *res);
+
+    // Converts `x` to a hex string, placing the result in *res.
+    // *res should be a char[9].
+    static void ConvertToHex(uint32 x, char *res);
+};
