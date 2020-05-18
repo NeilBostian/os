@@ -29,12 +29,12 @@ static void dump_regs_primary();
 
 uint8 get_status_register()
 {
-    return inb(PRIMARY_IO_7);
+    return Serial::InB(PRIMARY_IO_7);
 }
 
 uint8 get_error_register()
 {
-    return inb(PRIMARY_IO_1);
+    return Serial::InB(PRIMARY_IO_1);
 }
 
 void test_ata()
@@ -42,15 +42,15 @@ void test_ata()
     //dump_regs_primary();
 
     // Drive Select
-    outb(PRIMARY_IO_6, 0x00);
+    Serial::OutB(PRIMARY_IO_6, 0x00);
 
     // isDMA = 0
-    outb(PRIMARY_IO_1, 0);
-    outb(PRIMARY_IO_4, 32);
-    outb(PRIMARY_IO_5, 0);
+    Serial::OutB(PRIMARY_IO_1, 0);
+    Serial::OutB(PRIMARY_IO_4, 32);
+    Serial::OutB(PRIMARY_IO_5, 0);
 
     // Command Opcode "PACKET"
-    outb(PRIMARY_IO_7, 0xA0);
+    Serial::OutB(PRIMARY_IO_7, 0xA0);
 
     //dump_regs_primary();
 }
@@ -63,23 +63,23 @@ void ata_handle_irq()
         dump_regs_primary();
 
         // Command stream
-        outb(PRIMARY_IO_7, 0x43);
-        outb(PRIMARY_IO_7, 0x00);
+        Serial::OutB(PRIMARY_IO_7, 0x43);
+        Serial::OutB(PRIMARY_IO_7, 0x00);
 
-        outb(PRIMARY_IO_7, 0x01);
-        outb(PRIMARY_IO_7, 0x00);
+        Serial::OutB(PRIMARY_IO_7, 0x01);
+        Serial::OutB(PRIMARY_IO_7, 0x00);
 
-        outb(PRIMARY_IO_7, 0x00);
-        outb(PRIMARY_IO_7, 0x00);
+        Serial::OutB(PRIMARY_IO_7, 0x00);
+        Serial::OutB(PRIMARY_IO_7, 0x00);
 
-        outb(PRIMARY_IO_7, 0x00);
-        outb(PRIMARY_IO_7, 0x00);
+        Serial::OutB(PRIMARY_IO_7, 0x00);
+        Serial::OutB(PRIMARY_IO_7, 0x00);
 
-        outb(PRIMARY_IO_7, 0x0C);
-        outb(PRIMARY_IO_7, 0x40);
+        Serial::OutB(PRIMARY_IO_7, 0x0C);
+        Serial::OutB(PRIMARY_IO_7, 0x40);
 
-        outb(PRIMARY_IO_7, 0x00);
-        outb(PRIMARY_IO_7, 0x00);
+        Serial::OutB(PRIMARY_IO_7, 0x00);
+        Serial::OutB(PRIMARY_IO_7, 0x00);
 
         first_interrupt = false;
     }
@@ -99,70 +99,70 @@ void dump_regs_primary()
     uint8 b;
 
     Terminal::Write("Data     (+0) 0x");
-    b = inb(PRIMARY_IO_0);
+    b = Serial::InB(PRIMARY_IO_0);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
     Terminal::WriteLine();
 
     Terminal::Write("Error    (+1) 0x");
-    b = inb(PRIMARY_IO_1);
+    b = Serial::InB(PRIMARY_IO_1);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
     Terminal::WriteLine();
 
     Terminal::Write("Sector   (+2) 0x");
-    b = inb(PRIMARY_IO_2);
+    b = Serial::InB(PRIMARY_IO_2);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
     Terminal::WriteLine();
 
     Terminal::Write("Sector # (+3) 0x");
-    b = inb(PRIMARY_IO_3);
+    b = Serial::InB(PRIMARY_IO_3);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
     Terminal::Write("");
 
     Terminal::Write("Cyl Low  (+4) 0x");
-    b = inb(PRIMARY_IO_4);
+    b = Serial::InB(PRIMARY_IO_4);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
     Terminal::WriteLine();
 
     Terminal::Write("Cyl High (+5) 0x");
-    b = inb(PRIMARY_IO_5);
+    b = Serial::InB(PRIMARY_IO_5);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
     Terminal::WriteLine();
 
     Terminal::Write("Drive    (+6) 0x");
-    b = inb(PRIMARY_IO_6);
+    b = Serial::InB(PRIMARY_IO_6);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
     Terminal::WriteLine();
 
     Terminal::Write("Status   (+7) 0x");
-    b = inb(PRIMARY_IO_7);
+    b = Serial::InB(PRIMARY_IO_7);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
     Terminal::WriteLine();
 
     Terminal::Write("CTRL (CTRL+0) 0x");
-    b = inb(PRIMARY_CMD_0);
+    b = Serial::InB(PRIMARY_CMD_0);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);
     Terminal::WriteLine();
 
     Terminal::Write("Addr (CTRL+1) 0x");
-    b = inb(PRIMARY_CMD_1);
+    b = Serial::InB(PRIMARY_CMD_1);
     Terminal::Write(b);
     Terminal::Write(", 0b");
     Terminal::WriteBin(b);

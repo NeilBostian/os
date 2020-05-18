@@ -153,7 +153,7 @@ extern "C" void interrupt_handler(cpu_state cpu, uint32 isr, uint32 error_code, 
 {
     if (isr == ISR_KEYBOARD)
     {
-        uint8 scan_code = inb(0x60);
+        uint8 scan_code = Serial::InB(0x60);
 
         // terminal_write("kbd_scan=0x");
         // terminal_write_uint8(scan_code);
@@ -246,27 +246,27 @@ void create_idt()
 void PIC_sendEOI(uint8 irq)
 {
     if (irq >= 8)
-        outb(PIC2_CMD, 0x20);
+        Serial::OutB(PIC2_CMD, 0x20);
 
-    outb(PIC1_CMD, 0x20);
+    Serial::OutB(PIC1_CMD, 0x20);
 }
 
 void PIC_remap(uint8 offset)
 {
-    outb(PIC1_CMD, ICW1_INIT | ICW1_ICW4); // starts the initialization sequence (in cascade mode)
-    outb(PIC2_CMD, ICW1_INIT | ICW1_ICW4);
-    outb(PIC1_DATA, offset);     // ICW2: Master PIC vector offset
-    outb(PIC2_DATA, offset + 8); // ICW2: Slave PIC vector offset
-    outb(PIC1_DATA, 4);          // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
-    outb(PIC2_DATA, 2);          // ICW3: tell Slave PIC its cascade identity (0000 0010)
+    Serial::OutB(PIC1_CMD, ICW1_INIT | ICW1_ICW4); // starts the initialization sequence (in cascade mode)
+    Serial::OutB(PIC2_CMD, ICW1_INIT | ICW1_ICW4);
+    Serial::OutB(PIC1_DATA, offset);     // ICW2: Master PIC vector offset
+    Serial::OutB(PIC2_DATA, offset + 8); // ICW2: Slave PIC vector offset
+    Serial::OutB(PIC1_DATA, 4);          // ICW3: tell Master PIC that there is a slave PIC at IRQ2 (0000 0100)
+    Serial::OutB(PIC2_DATA, 2);          // ICW3: tell Slave PIC its cascade identity (0000 0010)
 
-    outb(PIC1_DATA, ICW4_8086);
-    outb(PIC2_DATA, ICW4_8086);
+    Serial::OutB(PIC1_DATA, ICW4_8086);
+    Serial::OutB(PIC2_DATA, ICW4_8086);
 
     // Mask -- start out with all IRQs disabled.
     // https://github.com/SerenityOS/serenity/blob/master/Kernel/Interrupts/PIC.cpp
-    outb(PIC1_DATA, 0xff);
-    outb(PIC1_DATA, 0xff);
+    Serial::OutB(PIC1_DATA, 0xff);
+    Serial::OutB(PIC1_DATA, 0xff);
 
     // ...except IRQ2, since that's needed for the master to let through slave interrupts.
     PIC_enable_irq(2);
@@ -287,8 +287,8 @@ void PIC_disable_irq(uint8 irq)
         irq -= 8;
     }
 
-    value = inb(port) | (1 << irq);
-    outb(port, value);
+    value = Serial::InB(port) | (1 << irq);
+    Serial::OutB(port, value);
 }
 
 void PIC_enable_irq(uint8 irq)
@@ -306,8 +306,8 @@ void PIC_enable_irq(uint8 irq)
         irq -= 8;
     }
 
-    value = inb(port) & ~(1 << irq);
-    outb(port, value);
+    value = Serial::InB(port) & ~(1 << irq);
+    Serial::OutB(port, value);
 }
 
 void panic()
