@@ -9,6 +9,8 @@
 #include <Types.h>
 
 #define PIC_ISR_OFFSET 0x20
+
+#define ISR_DIV_BY_ZERO 0
 #define ISR_KEYBOARD PIC_ISR_OFFSET + 1
 #define ISR_ATA_PRIMARY PIC_ISR_OFFSET + 14
 #define ISR_KERNEL_PANIC 0x30
@@ -129,7 +131,18 @@ void Cpu::InitGdt()
 
 void Cpu::HandleInterrupt(registers cpu, uint32 isr, uint32 error_code, uint32 eip)
 {
-    if (isr == ISR_KEYBOARD)
+    if (isr == ISR_DIV_BY_ZERO)
+    {
+        Terminal::WriteLine("Caught divide by zero exception: ");
+
+        Debug::WriteSymbol(eip);
+        Terminal::Write(" at 0x");
+        Terminal::Write(eip);
+        Terminal::WriteLine();
+
+        Debug::PrintCallStack(64, cpu.ebp);
+    }
+    else if (isr == ISR_KEYBOARD)
     {
         uint8 scan_code = Serial::InB(0x60);
 
